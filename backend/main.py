@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, Query, UploadFile, File
 from sqlalchemy.orm import Session
-from database import SessionLocal
+from database import SessionLocal,Base,engine
 from models.habilidad import Habilidad
 from fastapi.middleware.cors import CORSMiddleware
 from mineria import procesar_datos_computrabajo
@@ -8,6 +8,9 @@ from sklearn.metrics import accuracy_score
 import pandas as pd
 import json
 import os
+
+Base.metadata.create_all(bind=engine)
+
 
 app = FastAPI(title="API Habilidades Laborales")
 
