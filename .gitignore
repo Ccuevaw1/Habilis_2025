@@ -1,0 +1,8 @@
+# Ignorar entorno virtual y cachés
+venv/
+__pycache__/
+
+# Ignorar archivos sensibles y temporales
+*.env
+*.csv
+*.json
