@@ -1,0 +1,31 @@
+# Entorno virtual
+venv/
+.env
+
+# Archivos compilados de Python
+__pycache__/
+*.py[cod]
+*.so
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Archivos CSV u otros datos locales
+*.csv
+
+# Archivos de exportación
+*.pdf
+*.zip
+
+# Archivos específicos del proyecto
+data/manual.csv
+data/manual_verificacion.csv
+data/datos_crudos.csv
+data/precision_guardada.json
+
