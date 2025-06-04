@@ -87,7 +87,7 @@
 </section>
 
 <script>
-const API_URL = 'http://127.0.0.1:8000/estadisticas/habilidades';
+const API_URL = 'https://habilis2025-production.up.railway.app/estadisticas/habilidades';
 const selectCarrera = document.getElementById('select-carrera');
 const tituloCarrera = document.getElementById('titulo-carrera');
 
@@ -128,7 +128,7 @@ selectCarrera.addEventListener('change', () => {
     });
 });
 
-fetch("http://127.0.0.1:8000/precision-mineria/")
+fetch("https://habilis2025-production.up.railway.app/precision-mineria/")
   .then(res => res.json())
   .then(data => {
     const precisionText = data.mensaje || `Precisión del modelo de minería: ${(data.precision * 100).toFixed(2)}%`;
