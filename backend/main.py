@@ -17,7 +17,7 @@ app = FastAPI(title="API Habilidades Laborales")
 # Configurar CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://habilis-2025.vercel.app/"],
+    allow_origins=["http://localhost:5500/"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
