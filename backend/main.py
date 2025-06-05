@@ -184,11 +184,11 @@ def estadisticas_salarios(carrera: str = Query(..., description="Nombre de la ca
     df = df[df["salary"].notnull() & (df["salary"] != "No especificado")].copy()
 
     def limpiar_salario(s):
-        s = str(s).strip().lower()
-        s = s.replace("s/", "").replace(".", "").replace(",", "").strip()
         try:
-            return int(s)
-        except ValueError:
+            s = str(s).strip().lower()
+            s = s.replace("s/", "").replace(".", "").replace(",", ".")
+            return float(s)
+        except:
             return None
 
     df["salario_numerico"] = df["salary"].apply(limpiar_salario)

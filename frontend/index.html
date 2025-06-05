@@ -32,7 +32,6 @@
   </div>
 </header>
 
-
 <section id="contenedor-pdf">
   <div class="franja-blanca">
     <h1 class="titulo-principal" id="titulo-carrera">INGENIERÍA DE SISTEMAS</h1>
@@ -123,7 +122,7 @@ selectCarrera.addEventListener('change', () => {
       graficoTecnicas.data.datasets[0].data = topTecnicas.map(h => h.frecuencia);
       graficoTecnicas.update();
 
-      gr1ficoBlandas.data.labels = topBlandas.map(h => h.nombre);
+      graficoBlandas.data.labels = topBlandas.map(h => h.nombre);
       graficoBlandas.data.datasets[0].data = topBlandas.map(h => h.frecuencia);
       graficoBlandas.update();
 
