@@ -169,3 +169,35 @@ def obtener_precision_modelo():
             "precision": None,
             "mensaje": "⚠️ Aún no se ha verificado el modelo."
         }
+
+@app.get("/estadisticas/salarios")
+def estadisticas_salarios(carrera: str = Query(..., description="Nombre de la carrera"), db: Session = Depends(get_db)):
+    registros = db.query(Habilidad).filter(Habilidad.career.ilike(f"%{carrera.strip()}%")).all()
+
+    if not registros:
+        return {"message": "No se encontraron resultados para esa carrera."}
+
+    df = pd.DataFrame([r.__dict__ for r in registros])
+    df.drop(columns=["_sa_instance_state", "id"], inplace=True)
+
+    # Filtrar salarios definidos y convertir a numéricos
+    df = df[df["salary"].notnull() & (df["salary"] != "No especificado")].copy()
+
+    def limpiar_salario(s):
+        s = str(s).strip().lower()
+        s = s.replace("s/", "").replace(".", "").replace(",", "").strip()
+        try:
+            return int(s)
+        except ValueError:
+            return None
+
+    df["salario_numerico"] = df["salary"].apply(limpiar_salario)
+    df = df.dropna(subset=["salario_numerico"])
+    df = df.sort_values(by="salario_numerico")
+
+    return {
+        "salarios": [
+            {"puesto": row["title"], "salario": row["salario_numerico"]}
+            for _, row in df.iterrows()
+        ]
+    }
