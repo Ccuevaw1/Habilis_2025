@@ -136,49 +136,67 @@ selectCarrera.addEventListener('change', () => {
 
         // Nuevo fetch para los salarios
   fetch(`${API_SALARIOS}?carrera=${encodeURIComponent(carrera)}`)
-    .then(res => res.json())
-    .then(data => {
-      const salarios = data.salarios || [];
-      const puestos = salarios.map(s => s.puesto);
-      const valores = salarios.map(s => s.salario);
+  .then(res => res.json())
+  .then(data => {
+    const salarios = data.salarios || [];
 
-      if (window.graficoSalariosInstance) {
-        window.graficoSalariosInstance.destroy();
-      }
+    const puestos = salarios.map(s => s.puesto.length > 40 ? s.puesto.slice(0, 37) + '...' : s.puesto);
+    const valores = salarios.map(s => s.salario);
 
-      const ctx = document.getElementById('graficoSalarios').getContext('2d');
-      window.graficoSalariosInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: puestos,
-          datasets: [{
-            label: 'Salario (S/)',
-            data: valores,
-            backgroundColor: '#f6c23e'
-          }]
-        },
-        options: {
-          indexAxis: 'x',
-          responsive: true,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: ctx => `S/ ${ctx.raw.toLocaleString()}`
-              }
+    if (window.graficoSalariosInstance) {
+      window.graficoSalariosInstance.destroy();
+    }
+
+    const ctx = document.getElementById('graficoSalarios').getContext('2d');
+    window.graficoSalariosInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: puestos,
+        datasets: [{
+          label: 'Salario (S/)',
+          data: valores,
+          backgroundColor: 'rgba(72, 191, 145, 0.8)', // tono verde profesional
+          borderColor: '#48bf91',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        indexAxis: 'y', // BARRAS HORIZONTALES
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => `S/ ${ctx.raw.toLocaleString()}`
             }
           },
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                callback: value => `S/ ${value.toLocaleString()}`
-              }
+          title: {
+            display: false
+          }
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            ticks: {
+              callback: value => `S/ ${value.toLocaleString()}`
+            },
+            title: {
+              display: true,
+              text: "Salario en soles (S/)",
+              color: "#333",
+              font: { size: 14, weight: "bold" }
+            }
+          },
+          y: {
+            ticks: {
+              color: "#333",
+              font: { size: 12 }
             }
           }
         }
-      });
+      }
     });
+  });
 
 });
 
