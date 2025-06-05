@@ -180,7 +180,7 @@ def estadisticas_salarios(carrera: str = Query(..., description="Nombre de la ca
     df = pd.DataFrame([r.__dict__ for r in registros])
     df.drop(columns=["_sa_instance_state", "id"], inplace=True)
 
-    # Filtrar salarios definidos y convertir a numéricos
+    # Filtrar salarios válidos
     df = df[df["salary"].notnull() & (df["salary"] != "No especificado")].copy()
 
     def limpiar_salario(s):
@@ -193,7 +193,15 @@ def estadisticas_salarios(carrera: str = Query(..., description="Nombre de la ca
 
     df["salario_numerico"] = df["salary"].apply(limpiar_salario)
     df = df.dropna(subset=["salario_numerico"])
-    df = df.sort_values(by="salario_numerico")
+    
+    # Filtrar solo salarios > 1500
+    df = df[df["salario_numerico"] > 1500]
+
+    # Eliminar títulos duplicados (quedarse con el mayor salario por título)
+    df = df.sort_values(by="salario_numerico", ascending=False).drop_duplicates(subset=["title"])
+
+    # Ordenar de menor a mayor para la gráfica
+    df = df.sort_values(by="salario_numerico", ascending=True)
 
     return {
         "salarios": [
