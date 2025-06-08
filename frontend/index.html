@@ -27,8 +27,10 @@
           <option>Ingeniería Ambiental</option>
         </select>
       </div>
-      <input type="file" id="inputCsvCrudo" accept=".csv" style="display: none;" />
-      <button class="btn-subir" id="btnSubirCsv">SUBIR CSV</button>
+      <div style="margin: 1rem 0;">
+        <input type="file" id="inputCsv" accept=".csv" />
+        <button class="btn-subir" id="btnSubirCsv">Subir CSV</button>
+      </div>
       <button class="btn-exportar" id="btnExportar">EXPORTAR</button>
     </div>
   </div>
@@ -234,6 +236,34 @@ document.getElementById('btnExportar').addEventListener('click', () => {
 
   html2pdf().set(opciones).from(contenedor).save();
 });
+
+document.getElementById("btnSubirCsv").addEventListener("click", () => {
+  const fileInput = document.getElementById("inputCsv");
+  const file = fileInput.files[0];
+
+  if (!file) {
+    alert("Selecciona un archivo CSV primero.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  fetch("https://habilis2025-production.up.railway.app/proceso-csv", {
+    method: "POST",
+    body: formData
+  })
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById("prep-total").textContent = data.originales;
+      document.getElementById("prep-eliminados").textContent = data.eliminados;
+      document.getElementById("prep-finales").textContent = data.finales;
+      document.getElementById("prep-habilidades").textContent = data.habilidades.join(", ");
+      alert("CSV procesado exitosamente.");
+    })
+    .catch(() => alert("Error al subir el archivo."));
+});
+
 </script>
 </body>
 </html>
