@@ -137,9 +137,14 @@ async def verificar_modelo(file: UploadFile = File(...)):
 
         # Leer el CSV manual que contiene las etiquetas verdaderas
         try:
-            df_real = pd.read_csv(temp_manual_path, sep=';', encoding='utf-8')
-        except UnicodeDecodeError:
-            df_real = pd.read_csv(temp_manual_path, sep=';', encoding='latin1')
+            df_original = pd.read_csv(path_csv, encoding="utf-8", sep=";", on_bad_lines='skip')
+        except UnicodeDecodeError as e:
+            print("Error de codificación UTF-8, reintentando con latin1:", e)
+            try:
+                df_original = pd.read_csv(path_csv, encoding="latin1", sep=";", on_bad_lines='skip')
+            except Exception as e2:
+                print("También falló con latin1:", e2)
+                raise e2
 
         # Generar predicciones usando la función de minería
         df_predicho = procesar_datos_computrabajo(temp_manual_path)
@@ -235,8 +240,13 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
     # Leer CSV original
     try:
         df_original = pd.read_csv(path_csv, encoding="utf-8", sep=";", on_bad_lines='skip')
-    except UnicodeDecodeError:
-        df_original = pd.read_csv(path_csv, encoding="latin1", sep=";", on_bad_lines='skip')
+    except UnicodeDecodeError as e:
+        print("Error de codificación UTF-8, reintentando con latin1:", e)
+        try:
+            df_original = pd.read_csv(path_csv, encoding="latin1", sep=";", on_bad_lines='skip')
+        except Exception as e2:
+            print("También falló con latin1:", e2)
+            raise e2
 
     # Procesar y obtener DataFrame filtrado
     df_procesado, resumen, df_filtrado = procesar_datos_computrabajo(path_csv)

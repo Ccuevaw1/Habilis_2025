@@ -9,9 +9,14 @@ def procesar_datos_computrabajo(csv_path):
     """
     # Leer archivo CSV
     try:
-        df = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
-    except UnicodeDecodeError:
-        df = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
+        df_original = pd.read_csv(path_csv, encoding="utf-8", sep=";", on_bad_lines='skip')
+    except UnicodeDecodeError as e:
+        print("Error de codificación UTF-8, reintentando con latin1:", e)
+        try:
+            df_original = pd.read_csv(path_csv, encoding="latin1", sep=";", on_bad_lines='skip')
+        except Exception as e2:
+            print("También falló con latin1:", e2)
+            raise e2
     
     # LIMPIEZA DE SALARIO
     df['Salario'] = df['Salario'].fillna('').astype(str).str.replace(r"\(.*?\)", "", regex=True).str.strip()
