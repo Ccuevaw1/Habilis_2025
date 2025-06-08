@@ -136,7 +136,10 @@ async def verificar_modelo(file: UploadFile = File(...)):
             f.write(await file.read())
 
         # Leer el CSV manual que contiene las etiquetas verdaderas
-        df_real = pd.read_csv(temp_manual_path, sep=';', encoding='utf-8')
+        try:
+            df_real = pd.read_csv(temp_manual_path, sep=';', encoding='utf-8')
+        except UnicodeDecodeError:
+            df_real = pd.read_csv(temp_manual_path, sep=';', encoding='latin1')
 
         # Generar predicciones usando la función de minería
         df_predicho = procesar_datos_computrabajo(temp_manual_path)
@@ -230,7 +233,10 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
         shutil.copyfileobj(file.file, f)
 
     # Leer CSV original
-    df_original = pd.read_csv(path_csv, encoding="utf-8", sep=";", on_bad_lines='skip')
+    try:
+        df_original = pd.read_csv(path_csv, encoding="utf-8", sep=";", on_bad_lines='skip')
+    except UnicodeDecodeError:
+        df_original = pd.read_csv(path_csv, encoding="latin1", sep=";", on_bad_lines='skip')
 
     # Procesar y obtener DataFrame filtrado
     df_procesado = procesar_datos_computrabajo(path_csv)

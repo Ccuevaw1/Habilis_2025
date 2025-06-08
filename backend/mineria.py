@@ -8,7 +8,10 @@ def procesar_datos_computrabajo(csv_path):
     y devuelve un DataFrame limpio y estructurado.
     """
     # Leer archivo CSV
-    df = pd.read_csv(csv_path, encoding='utf-8', sep=';', on_bad_lines='skip')
+    try:
+        df = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
+    except UnicodeDecodeError:
+        df = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
 
     # LIMPIEZA DE SALARIO
     df['Salario'] = df['Salario'].fillna('').astype(str).str.replace(r"\(.*?\)", "", regex=True).str.strip()
