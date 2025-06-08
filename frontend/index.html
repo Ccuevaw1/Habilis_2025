@@ -98,9 +98,6 @@
         <li>Registros eliminados: <span id="prep-eliminados"></span></li>
         <li>Registros finales utilizados: <span id="prep-finales"></span></li>
         <li>Habilidades detectadas: <span id="prep-habilidades"></span></li>
-        <li>Columnas eliminadas: <span id="prep-columnas"></span></li>
-        <li>Campos rellenados: <span id="prep-rellenados"></span></li>
-        <li>Transformaciones aplicadas: <span id="prep-transformaciones"></span></li>
       </ul>
     </div>
 
@@ -275,9 +272,6 @@ fileInput.addEventListener("change", () => {
       document.getElementById("prep-eliminados").textContent = data.eliminados;
       document.getElementById("prep-finales").textContent = data.finales;
       document.getElementById("prep-habilidades").textContent = data.habilidades.join(", ");
-      document.getElementById("prep-columnas").textContent = data.columnas_eliminadas.join(", ");
-      document.getElementById("prep-rellenados").textContent = data.rellenados;
-      document.getElementById("prep-transformaciones").textContent = data.transformaciones_aplicadas;
       alert("CSV procesado exitosamente.");
     })
     .catch(() => alert("Error al subir el archivo."));

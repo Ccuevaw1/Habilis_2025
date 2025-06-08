@@ -9,14 +9,9 @@ def procesar_datos_computrabajo(csv_path):
     """
     # Leer archivo CSV
     try:
-        df_original = pd.read_csv(path_csv, encoding="utf-8", sep=";", on_bad_lines='skip')
-    except UnicodeDecodeError as e:
-        print("Error de codificación UTF-8, reintentando con latin1:", e)
-        try:
-            df_original = pd.read_csv(path_csv, encoding="latin1", sep=";", on_bad_lines='skip')
-        except Exception as e2:
-            print("También falló con latin1:", e2)
-            raise e2
+        df = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
+    except UnicodeDecodeError:
+        df = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
     
     # LIMPIEZA DE SALARIO
     df['Salario'] = df['Salario'].fillna('').astype(str).str.replace(r"\(.*?\)", "", regex=True).str.strip()
@@ -116,14 +111,4 @@ def procesar_datos_computrabajo(csv_path):
     columnas_finales = ['career', 'title', 'company', 'workday', 'modality', 'salary'] + \
         [col for col in df.columns if col.startswith("hard_") or col.startswith("soft_")]
 
-    resumen = {
-        "originales": len(df_original),
-        "eliminados": len(df_original) - len(df),
-        "finales": len(df),
-        "rellenados": sum(df[col].isna().sum() == 0 for col in ['company', 'modality', 'salary']),
-        "columnas_eliminadas": columnas_a_eliminar,
-        "transformaciones_aplicadas": 3,  # limpieza de texto, normalización, renombrado
-        "habilidades": [col for col in df.columns if col.startswith("hard_") or col.startswith("soft_")]
-    }
-
-    return df[columnas_finales], resumen, df
+    return df[columnas_finales]
