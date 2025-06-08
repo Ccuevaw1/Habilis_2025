@@ -121,4 +121,4 @@ def procesar_datos_computrabajo(csv_path):
         "habilidades": [col for col in df.columns if col.startswith("hard_") or col.startswith("soft_")]
     }
 
-    return df[columnas_finales], resumen
+    return df[columnas_finales], resumen, df
