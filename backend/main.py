@@ -239,7 +239,7 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
         df_original = pd.read_csv(path_csv, encoding="latin1", sep=";", on_bad_lines='skip')
 
     # Procesar y obtener DataFrame filtrado
-    df_procesado = procesar_datos_computrabajo(path_csv)
+    df_procesado, resumen = procesar_datos_computrabajo(path_csv)
 
     # Columnas detectadas
     columnas_habilidades = [col for col in df_procesado.columns if col.startswith("hard_") or col.startswith("soft_")]
@@ -262,4 +262,4 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
     db.commit()
     db.close()
 
-    return obtener_resumen_procesamiento(df_original, df_procesado, columnas_habilidades)
+    return resumen
