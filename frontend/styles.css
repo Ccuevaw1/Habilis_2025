@@ -218,3 +218,18 @@ canvas {
   background-color: #00b070;
 }
 
+.btn-subir {
+  background-color: #f6c23e;
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  margin-left: 0.5rem;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-subir:hover {
+  background-color: #dda20a;
+}

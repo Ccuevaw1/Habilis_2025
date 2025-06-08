@@ -210,3 +210,52 @@ def estadisticas_salarios(carrera: str = Query(..., description="Nombre de la ca
         ]
     }
 
+def obtener_resumen_procesamiento(df_original, df_filtrado, columnas_detectadas):
+    return {
+        "originales": len(df_original),
+        "eliminados": len(df_original) - len(df_filtrado),
+        "finales": len(df_filtrado),
+        "habilidades": columnas_detectadas
+    }
+
+from models.habilidad import Habilidad
+
+@app.post("/proceso-csv")
+async def proceso_csv_crudo(file: UploadFile = File(...)):
+    import shutil
+    from mineria import procesar_datos_computrabajo
+
+    # Guardar archivo temporalmente
+    os.makedirs("data", exist_ok=True)
+    path_csv = "data/upload.csv"
+    with open(path_csv, "wb") as f:
+        shutil.copyfileobj(file.file, f)
+
+    # Leer CSV original
+    df_original = pd.read_csv(path_csv, encoding="utf-8", sep=";", on_bad_lines='skip')
+
+    # Procesar y obtener DataFrame filtrado
+    df_procesado = procesar_datos_computrabajo(path_csv)
+
+    # Columnas detectadas
+    columnas_habilidades = [col for col in df_procesado.columns if col.startswith("hard_") or col.startswith("soft_")]
+
+    # Insertar en base de datos (borrando lo anterior)
+    db = SessionLocal()
+    db.query(Habilidad).delete()
+    db.commit()
+    for _, row in df_procesado.iterrows():
+        habilidad = Habilidad(
+            career=row.get("career"),
+            title=row.get("title"),
+            company=row.get("company"),
+            workday=row.get("workday"),
+            modality=row.get("modality"),
+            salary=row.get("salary"),
+            **{col: int(row[col]) for col in columnas_habilidades}
+        )
+        db.add(habilidad)
+    db.commit()
+    db.close()
+
+    return obtener_resumen_procesamiento(df_original, df_procesado, columnas_habilidades)
