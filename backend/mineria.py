@@ -13,6 +13,8 @@ def procesar_datos_computrabajo(csv_path):
     except UnicodeDecodeError:
         df = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
 
+    df_original = df.copy()
+
     # LIMPIEZA DE SALARIO
     df['Salario'] = df['Salario'].fillna('').astype(str).str.replace(r"\(.*?\)", "", regex=True).str.strip()
     df[['Salario_Simbolo', 'Salario_Valor']] = df['Salario'].str.extract(r'(\D+)?([\d.,]+)')
@@ -32,6 +34,8 @@ def procesar_datos_computrabajo(csv_path):
     df['Descripción'] = df['Descripción'].astype(str).str.lower()
     filtro = df['Título'].apply(contiene_palabra_ingenieria) | df['Descripción'].apply(contiene_palabra_ingenieria)
     df = df[filtro].copy()
+
+    registros_filtrados = len(df_original) - len(df)
 
     # UNIFICAR TEXTO PARA MINERÍA DE HABILIDADES
     df['Descripción'] = df['Descripción'].str.replace(r'[\r\n]+', ' ', regex=True)
@@ -84,6 +88,8 @@ def procesar_datos_computrabajo(csv_path):
         return re.sub(r'[^\w\s.,:/()-]', '', texto)
     for col in columnas_texto:
         df[col] = df[col].apply(limpiar_y_contar)
+        
+    columnas_antes = set(df.columns)
 
     # ELIMINAR COLUMNAS INNECESARIAS
     columnas_a_eliminar = [
@@ -91,6 +97,9 @@ def procesar_datos_computrabajo(csv_path):
         'Requerimientos', 'Contrato', 'Descripción', 'texto_skills', 'Acerca_de_Empresa'
     ]
     df.drop(columns=[col for col in columnas_a_eliminar if col in df.columns], inplace=True)
+
+    columnas_despues = set(df.columns)
+    columnas_eliminadas = list(columnas_antes - columnas_despues)
 
     # RENOMBRAR
     df.rename(columns={
@@ -111,27 +120,23 @@ def procesar_datos_computrabajo(csv_path):
     columnas_finales = ['career', 'title', 'company', 'workday', 'modality', 'salary'] + \
         [col for col in df.columns if col.startswith("hard_") or col.startswith("soft_")]
 
-    resumen = {
-        "originales": len(df_original),
-        "eliminados": len(df_original) - len(df),
-        "finales": len(df),
-        "habilidades": columnas_finales[6:],  # solo habilidades
-        "transformaciones": {
-            "relleno_nulos": ["company", "salary", "modality"],
-            "columnas_eliminadas": columnas_a_eliminar,
-            "columnas_renombradas": {
-                "Título": "title",
-                "Carrera Detectada": "career",
-                "Empresa": "company",
-                "Salario": "salary",
-                "Jornada": "workday",
-                "Tipo_Asistencia": "modality"
-            },
-            "caracteres_limpiados": columnas_texto.tolist(),
-            "normalizacion_minusculas": ["Título", "Subtítulo", "Descripción", "Requerimientos"],
-            "filtrado_carreras_por_palabras": keywords_engineering,
-            "salario_transformado": True
-        }
-    }
-    return df[columnas_finales], resumen
+    num_columnas_hard = sum(col.startswith("hard_") for col in df.columns)
+    num_columnas_soft = sum(col.startswith("soft_") for col in df.columns)
 
+    rellenos_salary = df['salary'].value_counts().get("No especificado", 0)
+    rellenos_company = df['company'].value_counts().get("No especificado", 0)
+    rellenos_modality = df['modality'].value_counts().get("No especificado", 0)
+
+    resumen_preparacion = {
+        "total_originales": len(df_original),
+        "registros_eliminados": registros_filtrados,
+        "registros_finales": len(df),
+        "columnas_eliminadas": columnas_eliminadas,
+        "columnas_hard": num_columnas_hard,
+        "columnas_soft": num_columnas_soft,
+        "rellenos_salary": rellenos_salary,
+        "rellenos_company": rellenos_company,
+        "rellenos_modality": rellenos_modality
+    }
+    
+    return df[columnas_finales]
