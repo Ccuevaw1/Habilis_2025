@@ -218,13 +218,18 @@ canvas {
   background-color: #00b070;
 }
 
-#preparacion-datos-container ul {
-  list-style-type: square;
-  padding-left: 1.5rem;
-  font-size: 0.95rem;
+.btn-subir {
+  background-color: #3c50b2;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
-#preparacion-datos-container li span {
-  font-weight: bold;
-  color: #333;
+.btn-subir:hover {
+  background-color: #2f3fa1;
 }

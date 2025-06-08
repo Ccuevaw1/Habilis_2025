@@ -27,8 +27,8 @@
           <option>Ingeniería Ambiental</option>
         </select>
       </div>
-      <input type="file" id="inputCsv" accept=".csv" style="margin-left: 1rem;" />
-      <button class="btn-subir" id="btnSubirCsv">Subir CSV</button>
+      <input type="file" id="inputCsv" accept=".csv" style="display: none;" />
+      <button class="btn-subir" id="btnUpload">Subir CSV</button>
       <button class="btn-exportar" id="btnExportar">EXPORTAR</button>
     </div>
   </div>
@@ -246,14 +246,18 @@ document.getElementById('btnExportar').addEventListener('click', () => {
   html2pdf().set(opciones).from(contenedor).save();
 });
 //-----------------------------------------
-document.getElementById("btnSubirCsv").addEventListener("click", () => {
-  const fileInput = document.getElementById("inputCsv");
-  const file = fileInput.files[0];
+const fileInput = document.getElementById("inputCsv");
+const btnUpload = document.getElementById("btnUpload");
 
-  if (!file) {
-    alert("Selecciona un archivo CSV primero.");
-    return;
-  }
+// Cuando haces clic en el botón, se abre el input de archivo
+btnUpload.addEventListener("click", () => {
+  fileInput.click();
+});
+
+// Cuando eliges un archivo, se sube automáticamente
+fileInput.addEventListener("change", () => {
+  const file = fileInput.files[0];
+  if (!file) return;
 
   const formData = new FormData();
   formData.append("file", file);
@@ -272,6 +276,7 @@ document.getElementById("btnSubirCsv").addEventListener("click", () => {
     })
     .catch(() => alert("Error al subir el archivo."));
 });
+
 
 </script>
 </body>
