@@ -111,4 +111,26 @@ def procesar_datos_computrabajo(csv_path):
     columnas_finales = ['career', 'title', 'company', 'workday', 'modality', 'salary'] + \
         [col for col in df.columns if col.startswith("hard_") or col.startswith("soft_")]
 
-    return df[columnas_finales]
+    resumen = {
+        "originales": len(df_original),
+        "eliminados": len(df_original) - len(df),
+        "finales": len(df),
+        "transformaciones": {
+            "relleno_nulos": ["company", "salary", "modality"],
+            "columnas_eliminadas": columnas_a_eliminar,
+            "columnas_renombradas": {
+                "Título": "title",
+                "Carrera Detectada": "career",
+                "Empresa": "company",
+                "Salario": "salary",
+                "Jornada": "workday",
+                "Tipo_Asistencia": "modality"
+            },
+            "caracteres_limpiados": columnas_texto.tolist(),
+            "normalizacion_minusculas": ["Título", "Subtítulo", "Descripción", "Requerimientos"],
+            "filtrado_carreras_por_palabras": keywords_engineering,
+            "salario_transformado": True
+        }
+    }
+    return df[columnas_finales], resumen
+
