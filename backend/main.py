@@ -31,6 +31,14 @@ def get_db():
     finally:
         db.close()
 
+def obtener_resumen_procesamiento(df_original, df_filtrado, columnas_detectadas):
+    return {
+        "originales": len(df_original),
+        "eliminados": len(df_original) - len(df_filtrado),
+        "finales": len(df_filtrado),
+        "habilidades": columnas_detectadas
+    }
+
 @app.get("/")
 def read_root():
     return {"message": "Backend is ready"}
@@ -209,16 +217,6 @@ def estadisticas_salarios(carrera: str = Query(..., description="Nombre de la ca
             for _, row in df.iterrows()
         ]
     }
-
-def obtener_resumen_procesamiento(df_original, df_filtrado, columnas_detectadas):
-    return {
-        "originales": len(df_original),
-        "eliminados": len(df_original) - len(df_filtrado),
-        "finales": len(df_filtrado),
-        "habilidades": columnas_detectadas
-    }
-
-from models.habilidad import Habilidad
 
 @app.post("/proceso-csv")
 async def proceso_csv_crudo(file: UploadFile = File(...)):

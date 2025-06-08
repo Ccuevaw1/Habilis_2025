@@ -27,8 +27,8 @@
           <option>Ingeniería Ambiental</option>
         </select>
       </div>
-      <input type="file" id="inputCsvCrudo" accept=".csv" style="display: none;" />
-      <button class="btn-subir" id="btnSubirCsv">SUBIR CSV CRUDOS</button>
+      <input type="file" id="inputCsv" accept=".csv" style="margin-left: 1rem;" />
+      <button class="btn-subir" id="btnSubirCsv">Subir CSV</button>
       <button class="btn-exportar" id="btnExportar">EXPORTAR</button>
     </div>
   </div>
@@ -90,6 +90,17 @@
       <h3>Salarios por Puesto</h3>
       <canvas id="graficoSalarios"></canvas>
     </div>
+
+    <div class="grafico-card" id="preparacion-datos-container" style="grid-column: 1 / span 2; grid-row: 4;">
+      <h3>Resumen de Preparación de Datos (CRISP-DM)</h3>
+      <ul id="resumen-preparacion">
+        <li>Total de registros en el CSV original: <span id="prep-total"></span></li>
+        <li>Registros eliminados: <span id="prep-eliminados"></span></li>
+        <li>Registros finales utilizados: <span id="prep-finales"></span></li>
+        <li>Habilidades detectadas: <span id="prep-habilidades"></span></li>
+      </ul>
+    </div>
+
   </main>
 </section>
 
@@ -234,7 +245,7 @@ document.getElementById('btnExportar').addEventListener('click', () => {
 
   html2pdf().set(opciones).from(contenedor).save();
 });
-
+//-----------------------------------------
 document.getElementById("btnSubirCsv").addEventListener("click", () => {
   const fileInput = document.getElementById("inputCsv");
   const file = fileInput.files[0];
