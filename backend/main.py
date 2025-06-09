@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from mineria import procesar_datos_computrabajo
 from sklearn.metrics import accuracy_score
 import pandas as pd
+import shutil
 import json
 import os
 
@@ -223,47 +224,56 @@ def estadisticas_salarios(carrera: str = Query(..., description="Nombre de la ca
 
 @app.post("/proceso-csv")
 async def proceso_csv_crudo(file: UploadFile = File(...)):
-    import shutil
-    from mineria import procesar_datos_computrabajo
-
-    # Guardar archivo temporalmente
-    os.makedirs("data", exist_ok=True)
-    path_csv = "data/upload.csv"
-    with open(path_csv, "wb") as f:
-        shutil.copyfileobj(file.file, f)
-
-    # Leer CSV original
     try:
-        df_original = pd.read_csv(path_csv, encoding="utf-8", sep=";", on_bad_lines='skip')
-    except UnicodeDecodeError:
-        df_original = pd.read_csv(path_csv, encoding="latin1", sep=";", on_bad_lines='skip')
+        # Guardar archivo temporal
+        os.makedirs("data", exist_ok=True)
+        path_csv = "data/upload.csv"
+        with open(path_csv, "wb") as f:
+            shutil.copyfileobj(file.file, f)
 
+        # Leer CSV original
+        try:
+            df_original = pd.read_csv(path_csv, encoding="utf-8", sep=";", on_bad_lines='skip')
+        except UnicodeDecodeError:
+            df_original = pd.read_csv(path_csv, encoding="latin1", sep=";", on_bad_lines='skip')
 
-    # Procesar y obtener DataFrame filtrado
-    df_final, resumen, _ = procesar_datos_computrabajo(temp_path)
+        # Procesar archivo (solo devuelve df procesado)
+        df_final = procesar_datos_computrabajo(path_csv)
 
-    # Columnas detectadas
-    columnas_habilidades = [col for col in df_procesado.columns if col.startswith("hard_") or col.startswith("soft_")]
+        # Detectar columnas de habilidades
+        columnas_habilidades = [col for col in df_final.columns if col.startswith("hard_") or col.startswith("soft_")]
 
-    # Insertar en base de datos (borrando lo anterior)
-    db = SessionLocal()
-    db.query(Habilidad).delete()
-    db.commit()
-    for _, row in df_procesado.iterrows():
-        habilidad = Habilidad(
-            career=row.get("career"),
-            title=row.get("title"),
-            company=row.get("company"),
-            workday=row.get("workday"),
-            modality=row.get("modality"),
-            salary=row.get("salary"),
-            **{col: int(row[col]) for col in columnas_habilidades}
-        )
-        db.add(habilidad)
-    db.commit()
-    db.close()
-    
-    return {
-    "message": f"{len(df_final)} registros procesados y guardados exitosamente.",
-    "resumen": resumen
-    }
+        # Generar resumen manual
+        resumen = obtener_resumen_procesamiento(df_original, df_final, columnas_habilidades)
+
+        # Insertar en base de datos (borrando lo anterior)
+        db = SessionLocal()
+        db.query(Habilidad).delete()
+        db.commit()
+        for _, row in df_final.iterrows():
+            habilidad = Habilidad(
+                career=row.get("career"),
+                title=row.get("title"),
+                company=row.get("company"),
+                workday=row.get("workday"),
+                modality=row.get("modality"),
+                salary=row.get("salary"),
+                **{col: int(row[col]) for col in columnas_habilidades}
+            )
+            db.add(habilidad)
+        db.commit()
+        db.close()
+
+        return {
+            "message": f"{len(df_final)} registros procesados y guardados exitosamente.",
+            "resumen": resumen
+        }
+
+    except Exception as e:
+        import traceback
+        print("❌ ERROR en /proceso-csv:", traceback.format_exc())
+        return {
+            "message": "❌ Error al procesar el archivo.",
+            "error": str(e)
+        }
+
