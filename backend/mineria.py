@@ -111,16 +111,21 @@ def procesar_datos_computrabajo(csv_path):
     columnas_finales = ['career', 'title', 'company', 'workday', 'modality', 'salary'] + \
         [col for col in df.columns if col.startswith("hard_") or col.startswith("soft_")]
 
+        # Guardar para estadísticas
+    df_final = df[columnas_finales].copy()
+    columnas_detectadas = [col for col in df.columns if col.startswith("hard_") or col.startswith("soft_")]
+
     resumen = {
-        "originales": total_original,
-        "eliminados": total_eliminados,
-        "finales": total_final,
-        "transformaciones_salario": df["salary"].notna().sum(),
+        "originales": len(pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')),
+        "eliminados": len(pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')) - len(df),
+        "finales": len(df),
+        "transformaciones_salario": df["salary"].notna().sum() if "salary" in df else 0,
         "rellenos": ["company", "salary", "modality"],
         "columnas_eliminadas": columnas_a_eliminar,
-        "registros_con_carrera": df["career"].notna().sum(),
+        "registros_con_carrera": df["career"].notna().sum() if "career" in df else 0,
         "caracteres_limpiados": True,
-        "habilidades": [col for col in df.columns if col.startswith("hard_") or col.startswith("soft_")]
+        "habilidades": columnas_detectadas
     }
-    return df[columnas_finales], resumen, df
+    return df_final, resumen, columnas_detectadas
+
 

@@ -243,7 +243,7 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
             df_original = pd.read_csv(path_csv, encoding="latin1", sep=";", on_bad_lines='skip')
 
         # Procesar archivo (solo devuelve df procesado)
-        df_final = procesar_datos_computrabajo(path_csv)
+        df_final, resumen, columnas_detectadas = procesar_datos_computrabajo(path_csv)
 
         # Detectar columnas de habilidades
         columnas_habilidades = [col for col in df_final.columns if col.startswith("hard_") or col.startswith("soft_")]
