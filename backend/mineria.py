@@ -9,15 +9,18 @@ def procesar_datos_computrabajo(csv_path):
     """
     # Leer archivo CSV
     try:
-        df = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
+        df_original = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
     except UnicodeDecodeError:
-        df = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
+        df_original = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
+
+    df = df_original.copy()
     
     # LIMPIEZA DE SALARIO
     df['Salario'] = df['Salario'].fillna('').astype(str).str.replace(r"\(.*?\)", "", regex=True).str.strip()
     df[['Salario_Simbolo', 'Salario_Valor']] = df['Salario'].str.extract(r'(\D+)?([\d.,]+)')
     df['Salario'] = df['Salario'].str.replace('.', '', regex=False).str.replace(',', '.', regex=False)
     df['Salario'] = pd.to_numeric(df['Salario'], errors='coerce')
+    salarios_transformados = df['Salario'].notna().sum()
     df.drop(columns='Salario_Simbolo', inplace=True)
     df.drop(columns='Salario', inplace=True)
     df.rename(columns={'Salario_Valor': 'Salario'}, inplace=True)
@@ -116,16 +119,15 @@ def procesar_datos_computrabajo(csv_path):
     columnas_detectadas = [col for col in df.columns if col.startswith("hard_") or col.startswith("soft_")]
 
     resumen = {
-        "originales": len(pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')),
-        "eliminados": len(pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')) - len(df),
+        "originales": len(df_original),
+        "eliminados": len(df_original) - len(df),
         "finales": len(df),
         "transformaciones_salario": df["salary"].notna().sum() if "salary" in df else 0,
         "rellenos": ["company", "salary", "modality"],
         "columnas_eliminadas": columnas_a_eliminar,
-        "registros_con_carrera": df["career"].notna().sum() if "career" in df else 0,
         "caracteres_limpiados": True,
         "habilidades": columnas_detectadas
     }
-    return df_final, resumen, columnas_detectadas
+    return df_final, resumen, columnas_detectadas, salarios_transformados
 
 

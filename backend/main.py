@@ -32,15 +32,26 @@ def get_db():
     finally:
         db.close()
 
-def obtener_resumen_procesamiento(df_original, df_filtrado, columnas_detectadas):
+def obtener_resumen_procesamiento(df_original, df_filtrado, columnas_detectadas, salario_ok):
+    # Detectar cantidad de nulos rellenados por campo
+    rellenos = {
+        campo: int(df_filtrado[campo].isna().sum()) 
+        for campo in ["company", "salary", "modality"] 
+        if campo in df_filtrado.columns
+    }
+
+    # Columnas eliminadas (las que no están en el df final pero sí en el original)
+    columnas_eliminadas = [
+        col for col in df_original.columns 
+        if col not in df_filtrado.columns
+    ]
     return {
         "originales": len(df_original),
         "eliminados": len(df_original) - len(df_filtrado),
         "finales": len(df_filtrado),
-        "transformaciones_salario": 0,  
-        "rellenos": [],                
-        "columnas_eliminadas": [],     
-        "registros_con_carrera": len(df_filtrado),  
+        "transformaciones_salario": salario_ok,  
+        "rellenos": rellenos,                
+        "columnas_eliminadas": columnas_eliminadas,       
         "caracteres_limpiados": True,
         "habilidades": columnas_detectadas
     }
@@ -110,7 +121,7 @@ async def subir_csv_crudo(file: UploadFile = File(...)):
         f.write(contents)
 
     # Procesar el archivo con la función del módulo mineria.py
-    df = procesar_datos_computrabajo(temp_path)
+    df, _, _, _ = procesar_datos_computrabajo(temp_path)
 
     # Insertar los datos en la base de datos
     db = SessionLocal()
@@ -243,13 +254,13 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
             df_original = pd.read_csv(path_csv, encoding="latin1", sep=";", on_bad_lines='skip')
 
         # Procesar archivo (solo devuelve df procesado)
-        df_final, resumen, columnas_detectadas = procesar_datos_computrabajo(path_csv)
+        df_final, resumen, columnas_detectadas, salario_ok = procesar_datos_computrabajo(path_csv)
 
         # Detectar columnas de habilidades
         columnas_habilidades = [col for col in df_final.columns if col.startswith("hard_") or col.startswith("soft_")]
 
         # Generar resumen manual
-        resumen = obtener_resumen_procesamiento(df_original, df_final, columnas_habilidades)
+        resumen = obtener_resumen_procesamiento(df_original, df_final, columnas_habilidades, salario_ok)
 
         # Insertar en base de datos (borrando lo anterior)
         db = SessionLocal()
