@@ -97,6 +97,11 @@
         <li>Total de registros en el CSV original: <span id="prep-total"></span></li>
         <li>Registros eliminados: <span id="prep-eliminados"></span></li>
         <li>Registros finales utilizados: <span id="prep-finales"></span></li>
+        <li>Registros con salario transformado: <span id="prep-salario-ok"></span></li>
+        <li>Campos nulos rellenados: <span id="prep-rellenos"></span></li>
+        <li>Columnas eliminadas: <span id="prep-columnas-eliminadas"></span></li>
+        <li>Registros con carrera detectada: <span id="prep-carrera"></span></li>
+        <li>¿Caracteres limpiados?: <span id="prep-limpieza"></span></li>
         <li>Habilidades detectadas: <span id="prep-habilidades"></span></li>
       </ul>
     </div>
@@ -268,10 +273,17 @@ fileInput.addEventListener("change", () => {
   })
     .then(res => res.json())
     .then(data => {
-      document.getElementById("prep-total").textContent = data.originales;
-      document.getElementById("prep-eliminados").textContent = data.eliminados;
-      document.getElementById("prep-finales").textContent = data.finales;
-      document.getElementById("prep-habilidades").textContent = data.habilidades.join(", ");
+      const resumen = data.resumen;
+      document.getElementById("prep-total").textContent = resumen.originales;
+      document.getElementById("prep-eliminados").textContent = resumen.eliminados;
+      document.getElementById("prep-finales").textContent = resumen.finales;
+      document.getElementById("prep-salario-ok").textContent = resumen.transformaciones_salario;
+      document.getElementById("prep-rellenos").textContent = resumen.rellenos.join(", ");
+      document.getElementById("prep-columnas-eliminadas").textContent = resumen.columnas_eliminadas.join(", ");
+      document.getElementById("prep-carrera").textContent = resumen.registros_con_carrera;
+      document.getElementById("prep-limpieza").textContent = resumen.caracteres_limpiados ? "Sí" : "No";
+      document.getElementById("prep-habilidades").textContent = resumen.habilidades.join(", ");
+
       alert("CSV procesado exitosamente.");
     })
     .catch(() => alert("Error al subir el archivo."));
