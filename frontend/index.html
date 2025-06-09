@@ -278,9 +278,7 @@ fileInput.addEventListener("change", () => {
       document.getElementById("prep-eliminados").textContent = resumen.eliminados;
       document.getElementById("prep-finales").textContent = resumen.finales;
       document.getElementById("prep-salario-ok").textContent = resumen.transformaciones_salario;
-      document.getElementById("prep-rellenos").textContent = Object.entries(resumen.rellenos)
-        .map(([campo, cantidad]) => `${campo} (${cantidad})`)
-        .join(", ");
+      document.getElementById("prep-rellenos").textContent = resumen.rellenos.join(", ");
       document.getElementById("prep-columnas-eliminadas").textContent = resumen.columnas_eliminadas.join(", ");
       document.getElementById("prep-limpieza").textContent = resumen.caracteres_limpiados ? "Sí" : "No";
       document.getElementById("prep-habilidades").textContent = resumen.habilidades.join(", ");
