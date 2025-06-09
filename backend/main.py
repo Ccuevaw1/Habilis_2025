@@ -37,6 +37,11 @@ def obtener_resumen_procesamiento(df_original, df_filtrado, columnas_detectadas)
         "originales": len(df_original),
         "eliminados": len(df_original) - len(df_filtrado),
         "finales": len(df_filtrado),
+        "transformaciones_salario": 0,  
+        "rellenos": [],                
+        "columnas_eliminadas": [],     
+        "registros_con_carrera": len(df_filtrado),  
+        "caracteres_limpiados": True,
         "habilidades": columnas_detectadas
     }
 
