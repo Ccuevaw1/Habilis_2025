@@ -121,7 +121,7 @@ async def subir_csv_crudo(file: UploadFile = File(...)):
         f.write(contents)
 
     # Procesar el archivo con la función del módulo mineria.py
-    df, _, _, _ = procesar_datos_computrabajo(temp_path)
+    df = procesar_datos_computrabajo(temp_path)
 
     # Insertar los datos en la base de datos
     db = SessionLocal()

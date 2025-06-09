@@ -9,9 +9,9 @@ def procesar_datos_computrabajo(csv_path):
     """
     # Leer archivo CSV
     try:
-        df_original = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
+        df = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
     except UnicodeDecodeError:
-        df_original = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
+        df = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
 
     df = df_original.copy()
     
@@ -119,8 +119,8 @@ def procesar_datos_computrabajo(csv_path):
     columnas_detectadas = [col for col in df.columns if col.startswith("hard_") or col.startswith("soft_")]
 
     resumen = {
-        "originales": len(df_original),
-        "eliminados": len(df_original) - len(df),
+        "originales": len(pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')),
+        "eliminados": len(pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')) - len(df),
         "finales": len(df),
         "transformaciones_salario": df["salary"].notna().sum() if "salary" in df else 0,
         "rellenos": ["company", "salary", "modality"],
