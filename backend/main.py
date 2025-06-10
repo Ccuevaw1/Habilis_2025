@@ -109,7 +109,7 @@ async def subir_csv_crudo(file: UploadFile = File(...)):
         f.write(contents)
 
     # Procesar el archivo con la función del módulo mineria.py
-    df, _, _ = procesar_datos_computrabajo(temp_path)
+    df = procesar_datos_computrabajo(temp_path)
 
     # Insertar los datos en la base de datos
     db = SessionLocal()
@@ -147,7 +147,7 @@ async def verificar_modelo(file: UploadFile = File(...)):
             df_real = pd.read_csv(temp_manual_path, sep=';', encoding='latin1')
 
         # Generar predicciones usando la función de minería
-        df_predicho, _, _ = procesar_datos_computrabajo(temp_manual_path)
+        df_predicho = procesar_datos_computrabajo(temp_manual_path)
 
         # Extraer columnas de habilidades para comparar
         columnas_habilidades = [col for col in df_real.columns if col.startswith("hard_") or col.startswith("soft_")]
