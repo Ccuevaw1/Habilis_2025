@@ -238,28 +238,38 @@ def estadisticas_salarios(carrera: str = Query(..., description="Nombre de la ca
 @app.post("/proceso-csv")
 async def proceso_csv_crudo(file: UploadFile = File(...)):
     try:
-        # Guardar archivo temporal
+        # Guardar el archivo temporalmente
         os.makedirs("data", exist_ok=True)
         path_csv = "data/upload.csv"
         with open(path_csv, "wb") as f:
             shutil.copyfileobj(file.file, f)
 
-        # # Leer CSV original
-        # try:
-        #     df_original = pd.read_csv(path_csv, encoding="utf-8", sep=";", on_bad_lines='skip')
-        # except UnicodeDecodeError:
-        #     df_original = pd.read_csv(path_csv, encoding="latin1", sep=";", on_bad_lines='skip')
+        # Leer CSV original con manejo robusto de encoding
+        try:
+            df_original = pd.read_csv(path_csv, encoding="utf-8", sep=";", on_bad_lines='skip')
+        except UnicodeDecodeError:
+            df_original = pd.read_csv(path_csv, encoding="latin1", sep=";", on_bad_lines='skip')
 
-        # Procesar archivo (solo devuelve df procesado)
+        # Procesar archivo CSV (mineria.py)
         df_final, resumen, columnas_detectadas = procesar_datos_computrabajo(path_csv)
 
-        # Detectar columnas de habilidades
-        columnas_habilidades = columnas_detectadas
+        # Verificar si df_final está vacío (importante validación)
+        if df_final.empty:
+            return {"message": "❌ No se generaron registros válidos tras procesar el CSV.", "error": "DataFrame vacío."}
 
-        # Generar resumen manual
-        resumen = obtener_resumen_procesamiento(df_original, df_final, columnas_habilidades)
+        # Asegurar tipos correctos para el frontend
+        resumen = {
+            "originales": int(resumen["originales"]),
+            "eliminados": int(resumen["eliminados"]),
+            "finales": int(resumen["finales"]),
+            "transformaciones_salario": int(resumen["transformaciones_salario"]),
+            "rellenos": resumen["rellenos"],
+            "columnas_eliminadas": resumen["columnas_eliminadas"],
+            "caracteres_limpiados": resumen["caracteres_limpiados"],
+            "habilidades": resumen["habilidades"]
+        }
 
-        # Insertar en base de datos (borrando lo anterior)
+        # Insertar datos procesados en BD
         db = SessionLocal()
         db.query(Habilidad).delete()
         db.commit()
@@ -271,7 +281,7 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
                 workday=row.get("workday"),
                 modality=row.get("modality"),
                 salary=row.get("salary"),
-                **{col: int(row[col]) for col in columnas_habilidades}
+                **{col: int(row[col]) for col in columnas_detectadas}
             )
             db.add(habilidad)
         db.commit()
@@ -284,8 +294,10 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
 
     except Exception as e:
         import traceback
-        print("❌ ERROR en /proceso-csv:", traceback.format_exc())
+        error_trace = traceback.format_exc()
+        print("❌ ERROR DETALLADO:", error_trace)
         return {
             "message": "❌ Error al procesar el archivo.",
-            "error": str(e)
+            "error": str(e),
+            "detalle": error_trace  # Opcional para debug
         }
