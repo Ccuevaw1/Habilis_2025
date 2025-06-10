@@ -18,6 +18,7 @@ def procesar_datos_computrabajo(csv_path):
     df[['Salario_Simbolo', 'Salario_Valor']] = df['Salario'].str.extract(r'(\D+)?([\d.,]+)')
     df['Salario'] = df['Salario'].str.replace('.', '', regex=False).str.replace(',', '.', regex=False)
     df['Salario'] = pd.to_numeric(df['Salario'], errors='coerce')
+    
     df.drop(columns='Salario_Simbolo', inplace=True)
     df.drop(columns='Salario', inplace=True)
     df.rename(columns={'Salario_Valor': 'Salario'}, inplace=True)
@@ -130,5 +131,3 @@ def procesar_datos_computrabajo(csv_path):
         "habilidades": columnas_detectadas
     }
     return df_final, resumen, columnas_detectadas
-
-
