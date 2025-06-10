@@ -102,6 +102,7 @@ def procesar_datos_computrabajo(csv_path):
         'Tipo_Asistencia': 'modality',
     }, inplace=True)
 
+    cantidad_salario_transformado = df["salary"].notna().sum() if "salary" in df.columns else 0
     # RELLENAR NULOS
     for campo in ['company', 'salary', 'modality']:
         if campo in df.columns:
@@ -123,7 +124,7 @@ def procesar_datos_computrabajo(csv_path):
         "originales": len(pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')),
         "eliminados": len(pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')) - len(df),
         "finales": len(df),
-        "transformaciones_salario": df["salary"].notna().sum() if "salary" in df else 0,
+        "transformaciones_salario": cantidad_salario_transformado,
         "rellenos": rellenados,
         "columnas_eliminadas": columnas_a_eliminar,
         "caracteres_limpiados": True,
