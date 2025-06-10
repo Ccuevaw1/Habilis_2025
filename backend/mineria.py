@@ -1,7 +1,7 @@
 import pandas as pd
 import re
 
-def procesar_datos_computrabajo(csv_path, df_origen=None):
+def procesar_datos_computrabajo(csv_path):
     """
     Procesa un archivo CSV crudo de Computrabajo.
     Detecta carrera, habilidades técnicas y blandas,
