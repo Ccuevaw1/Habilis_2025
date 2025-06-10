@@ -31,18 +31,18 @@ def get_db():
     finally:
         db.close()
 
-def obtener_resumen_procesamiento(df_original, df_filtrado, columnas_detectadas):
+# def obtener_resumen_procesamiento(df_original, df_filtrado, columnas_detectadas):
     
-     return {
-           "originales": len(df_original),
-           "eliminados": len(df_original) - len(df_filtrado),
-           "finales": len(df_filtrado),
-           "transformaciones_salario": 0,  
-           "rellenos": [],                
-           "columnas_eliminadas": [],       
-           "caracteres_limpiados": True,
-           "habilidades": columnas_detectadas
-     }
+#     return {
+#            "originales": len(df_original),
+#            "eliminados": len(df_original) - len(df_filtrado),
+#            "finales": len(df_filtrado),
+#            "transformaciones_salario": 0,  
+#            "rellenos": [],                
+#            "columnas_eliminadas": [],       
+#            "caracteres_limpiados": True,
+#            "habilidades": columnas_detectadas
+#     }
 
 @app.get("/")
 def read_root():
@@ -235,20 +235,20 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
         with open(path_csv, "wb") as f:
             shutil.copyfileobj(file.file, f)
 
-        # Leer CSV original
-        try:
-            df_original = pd.read_csv(path_csv, encoding="utf-8", sep=";", on_bad_lines='skip')
-        except UnicodeDecodeError:
-            df_original = pd.read_csv(path_csv, encoding="latin1", sep=";", on_bad_lines='skip')
+        # # Leer CSV original
+        # try:
+        #     df_original = pd.read_csv(path_csv, encoding="utf-8", sep=";", on_bad_lines='skip')
+        # except UnicodeDecodeError:
+        #     df_original = pd.read_csv(path_csv, encoding="latin1", sep=";", on_bad_lines='skip')
 
         # Procesar archivo (solo devuelve df procesado)
         df_final, resumen, columnas_detectadas = procesar_datos_computrabajo(path_csv)
 
         # Detectar columnas de habilidades
-        columnas_habilidades = [col for col in df_final.columns if col.startswith("hard_") or col.startswith("soft_")]
+        columnas_habilidades = columnas_detectadas
 
         # Generar resumen manual
-        resumen = obtener_resumen_procesamiento(df_original, df_final, columnas_habilidades)
+        # resumen = obtener_resumen_procesamiento(df_original, df_final, columnas_habilidades)
 
         # Insertar en base de datos (borrando lo anterior)
         db = SessionLocal()
@@ -280,4 +280,3 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
             "message": "❌ Error al procesar el archivo.",
             "error": str(e)
         }
-
