@@ -302,5 +302,4 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
             "message": "❌ Error al procesar el archivo.",
             "error": str(e),
             "detalle": error_trace,  # Opcional para debug
-
         }
