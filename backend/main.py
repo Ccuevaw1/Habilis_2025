@@ -248,7 +248,7 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
         columnas_habilidades = [col for col in df_final.columns if col.startswith("hard_") or col.startswith("soft_")]
 
         # Generar resumen manual
-        resumen = obtener_resumen_procesamiento(df_original, df_final, columnas_habilidades)
+        # resumen = obtener_resumen_procesamiento(df_original, df_final, columnas_habilidades)
 
         # Insertar en base de datos (borrando lo anterior)
         db = SessionLocal()
