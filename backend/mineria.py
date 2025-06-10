@@ -1,7 +1,7 @@
 import pandas as pd
 import re
 
-def procesar_datos_computrabajo(csv_path, df_origen=None):
+def procesar_datos_computrabajo(csv_path):
     """
     Procesa un archivo CSV crudo de Computrabajo.
     Detecta carrera, habilidades técnicas y blandas,
@@ -136,14 +136,16 @@ def procesar_datos_computrabajo(csv_path, df_origen=None):
     }
 
     df_antes = df_origen.head(5).copy()
-    df_despues = df_final.head(5).copy()
-    # Filtrar solo habilidades activas (True)
-    for i in df_despues.index:
-        row = df_despues.loc[i]
-        for col in df_despues.columns:
-            if col.startswith("hard_") or col.startswith("soft_"):
-                if not row[col]:
-                    df_despues.at[i, col] = None  # Eliminar columnas "false"
+    # Filtrar solo habilidades activas por fila
+    def filtrar_activas(row):
+        return {
+            k: v
+            for k, v in row.items()
+            if not k.startswith("hard_") and not k.startswith("soft_") or v == True
+        }
 
-    return df_final, resumen, columnas_detectadas, df_antes.to_dict(orient='records'), df_despues.to_dict(orient='records')
+    df_despues = df_final.head(5).to_dict(orient='records')
+    preview_despues = [filtrar_activas(row) for row in df_despues]
+
+    return df_final, resumen, columnas_detectadas, df_antes.to_dict(orient='records'), preview_despues
     
