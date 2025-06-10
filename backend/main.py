@@ -31,18 +31,18 @@ def get_db():
     finally:
         db.close()
 
-def obtener_resumen_procesamiento(df_original, df_filtrado, columnas_detectadas):
+#def obtener_resumen_procesamiento(df_original, df_filtrado, columnas_detectadas):
     
-      return {
-          "originales": len(df_original),
-          "eliminados": len(df_original) - len(df_filtrado),
-          "finales": len(df_filtrado),
-          "transformaciones_salario": 0,  
-          "rellenos": [],                
-          "columnas_eliminadas": [],       
-          "caracteres_limpiados": True,
-          "habilidades": columnas_detectadas
-      }
+    #   return {
+    #       "originales": len(df_original),
+    #       "eliminados": len(df_original) - len(df_filtrado),
+    #       "finales": len(df_filtrado),
+    #       "transformaciones_salario": 0,  
+    #       "rellenos": [],                
+    #       "columnas_eliminadas": [],       
+    #       "caracteres_limpiados": True,
+    #       "habilidades": columnas_detectadas
+    #   }
 
 @app.get("/")
 def read_root():
@@ -248,7 +248,7 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
         columnas_habilidades = [col for col in df_final.columns if col.startswith("hard_") or col.startswith("soft_")]
 
         # Generar resumen manual
-        # resumen = obtener_resumen_procesamiento(df_original, df_final, columnas_habilidades)
+        #resumen = obtener_resumen_procesamiento(df_original, df_final, columnas_habilidades)
 
         # Insertar en base de datos (borrando lo anterior)
         db = SessionLocal()
