@@ -246,12 +246,12 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
 
         # Leer CSV original con manejo robusto de encoding
         try:
-            df_original = pd.read_csv(path_csv, encoding="utf-8", sep=";", on_bad_lines='skip')
+            df_origen = pd.read_csv(path_csv, encoding="utf-8", sep=";", on_bad_lines='skip')
         except UnicodeDecodeError:
-            df_original = pd.read_csv(path_csv, encoding="latin1", sep=";", on_bad_lines='skip')
+            df_origen = pd.read_csv(path_csv, encoding="latin1", sep=";", on_bad_lines='skip')
 
         # Procesar archivo CSV (mineria.py)
-        df_final, resumen, columnas_detectadas, preview_antes, preview_despues = procesar_datos_computrabajo(path_csv)
+        df_final, resumen, columnas_detectadas, preview_antes, preview_despues = procesar_datos_computrabajo(path_csv, df_origen)
 
         # Verificar si df_final está vacío (importante validación)
         if df_final.empty:
