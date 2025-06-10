@@ -225,15 +225,15 @@ selectCarrera.addEventListener('change', () => {
   });
 });
 
-fetch("https://habilis2025-production.up.railway.app/precision-mineria/")
-  .then(res => res.json())
-  .then(data => {
-    const precisionText = data.mensaje || `Precisión del modelo de minería: ${(data.precision * 100).toFixed(2)}%`;
-    document.getElementById('precision-modelo').innerText = precisionText;
-  })
-  .catch(() => {
-    document.getElementById('precision-modelo').innerText = "No se pudo cargar la precisión del modelo.";
-  });
+// fetch("https://habilis2025-production.up.railway.app/precision-mineria/")
+//   .then(res => res.json())
+//   .then(data => {
+//     const precisionText = data.mensaje || `Precisión del modelo de minería: ${(data.precision * 100).toFixed(2)}%`;
+//     document.getElementById('precision-modelo').innerText = precisionText;
+//   })
+//   .catch(() => {
+//     document.getElementById('precision-modelo').innerText = "No se pudo cargar la precisión del modelo.";
+//   });
 
 // Exportar sin mostrar el botón
 document.getElementById('btnExportar').addEventListener('click', () => {
