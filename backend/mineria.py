@@ -115,16 +115,13 @@ def procesar_datos_computrabajo(csv_path):
     df_final = df[columnas_finales].copy()
     columnas_detectadas = [col for col in df.columns if col.startswith("hard_") or col.startswith("soft_")]
 
-    df_original = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
-    df = df_original.copy()
-
     rellenados = []
     for campo in ['company', 'salary', 'modality']:
         if campo in df.columns and df[campo].isna().sum() > 0:
             rellenados.append(campo)
     resumen = {
-        "originales": len(df_original),
-        "eliminados": len(df_original) - len(df),
+        "originales": len(pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')),
+        "eliminados": len(pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')) - len(df),
         "finales": len(df),
         "transformaciones_salario": df["salary"].notna().sum() if "salary" in df else 0,
         "rellenos": rellenados,
