@@ -18,7 +18,7 @@ def procesar_datos_computrabajo(csv_path):
     df[['Salario_Simbolo', 'Salario_Valor']] = df['Salario'].str.extract(r'(\D+)?([\d.,]+)')
     df['Salario'] = df['Salario'].str.replace('.', '', regex=False).str.replace(',', '.', regex=False)
     df['Salario'] = pd.to_numeric(df['Salario'], errors='coerce')
-
+    
     df.drop(columns='Salario_Simbolo', inplace=True)
     df.drop(columns='Salario', inplace=True)
     df.rename(columns={'Salario_Valor': 'Salario'}, inplace=True)
@@ -104,8 +104,12 @@ def procesar_datos_computrabajo(csv_path):
     }, inplace=True)
 
     # RELLENAR NULOS
+    rellenados = []
     for campo in ['company', 'salary', 'modality']:
         if campo in df.columns:
+            cantidad_nulos = df[campo].isna().sum()
+            if cantidad_nulos > 0:
+                rellenados.append(campo)
             df[campo] = df[campo].fillna('No especificado')
 
     # SELECCIONAR COLUMNAS FINALES
@@ -116,16 +120,12 @@ def procesar_datos_computrabajo(csv_path):
     df_final = df[columnas_finales].copy()
     columnas_detectadas = [col for col in df.columns if col.startswith("hard_") or col.startswith("soft_")]
 
-    rellenos = []
-    for campo in ['company', 'salary', 'modality']:
-        if campo in df.columns and df[campo].isna().sum() > 0:
-            rellenos.append(campo)
     resumen = {
         "originales": len(pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')),
         "eliminados": len(pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')) - len(df),
         "finales": len(df),
         "transformaciones_salario": df["salary"].notna().sum() if "salary" in df else 0,
-        "rellenos": rellenos,
+        "rellenos": rellenados,
         "columnas_eliminadas": columnas_a_eliminar,
         "caracteres_limpiados": True,
         "habilidades": columnas_detectadas
