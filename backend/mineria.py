@@ -137,15 +137,13 @@ def procesar_datos_computrabajo(csv_path, df_origen=None):
 
     df_antes = df_origen.head(5).copy()
     # Filtrar solo habilidades activas por fila
-    def filtrar_activas(row):
-        return {
-            k: v
-            for k, v in row.items()
-            if not k.startswith("hard_") and not k.startswith("soft_") or v == True
-        }
+    def filtrar_activas(row, columnas):
+        return {col: row.get(col, False if col.startswith("hard_") or col.startswith("soft_") else "") for col in columnas}
+
 
     df_despues = df_final.head(5).to_dict(orient='records')
-    preview_despues = [filtrar_activas(row) for row in df_despues]
+    preview_despues = [filtrar_activas(row, columnas_finales + columnas_detectadas) for row in df_despues]
+
 
     return df_final, resumen, columnas_detectadas, df_antes.to_dict(orient='records'), preview_despues
     
