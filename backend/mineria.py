@@ -1,7 +1,7 @@
 import pandas as pd
 import re
 
-def procesar_datos_computrabajo(csv_path):
+def procesar_datos_computrabajo(csv_path, df_origen=None):
     """
     Procesa un archivo CSV crudo de Computrabajo.
     Detecta carrera, habilidades técnicas y blandas,
@@ -146,3 +146,4 @@ def procesar_datos_computrabajo(csv_path):
                     df_despues.at[i, col] = None  # Eliminar columnas "false"
 
     return df_final, resumen, columnas_detectadas, df_antes.to_dict(orient='records'), df_despues.to_dict(orient='records')
+    
