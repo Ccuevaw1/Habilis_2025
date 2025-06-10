@@ -5,7 +5,7 @@ def procesar_datos_computrabajo(csv_path):
     """
     Procesa un archivo CSV crudo de Computrabajo.
     Detecta carrera, habilidades técnicas y blandas,
-    y devuelve un DataFrame limpio y estructurado.
+    y devuelve un DataFrame (csv) limpio y estructurado.
     """
     # Leer archivo CSV
     try:
@@ -123,7 +123,7 @@ def procesar_datos_computrabajo(csv_path):
         df_origen = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
     except UnicodeDecodeError:
         df_origen = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
-        
+
     resumen = {
         "originales": len(df_origen),
         "eliminados": len(df_origen) - len(df),
@@ -134,4 +134,15 @@ def procesar_datos_computrabajo(csv_path):
         "caracteres_limpiados": True,
         "habilidades": columnas_detectadas
     }
-    return df_final, resumen, columnas_detectadas
+
+    df_antes = df_origen.head(5).copy()
+    df_despues = df_final.head(5).copy()
+    # Filtrar solo habilidades activas (True)
+    for i in df_despues.index:
+        row = df_despues.loc[i]
+        for col in df_despues.columns:
+            if col.startswith("hard_") or col.startswith("soft_"):
+                if not row[col]:
+                    df_despues.at[i, col] = None  # Eliminar columnas "false"
+
+    return df_final, resumen, columnas_detectadas, df_antes.to_dict(orient='records'), df_despues.to_dict(orient='records')

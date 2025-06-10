@@ -105,6 +105,20 @@
       </ul>
     </div>
 
+    <div class="grafico-card" id="preview-modelado-container" style="grid-column: 1 / span 2; grid-row: 5;">
+      <h3>Antes y Después del Modelado (Primeros 5 Registros)</h3>
+      <div style="display: flex; gap: 1rem;">
+        <div style="flex: 1;">
+          <h4>Antes (Datos Crudos)</h4>
+          <table class="tabla-estilo" id="tabla-antes"></table>
+        </div>
+        <div style="flex: 1;">
+          <h4>Después (Datos Procesados)</h4>
+          <table class="tabla-estilo" id="tabla-despues"></table>
+        </div>
+      </div>
+    </div>
+
   </main>
 </section>
 
@@ -155,7 +169,6 @@ selectCarrera.addEventListener('change', () => {
   .then(res => res.json())
   .then(data => {
     const salarios = data.salarios || [];
-
     const puestos = salarios.map(s => s.puesto.length > 40 ? s.puesto.slice(0, 37) + '...' : s.puesto);
     const valores = salarios.map(s => s.salario);
 
@@ -270,23 +283,40 @@ fileInput.addEventListener("change", () => {
     method: "POST",
     body: formData
   })
-    .then(res => res.json())
-    .then(data => {
-      const resumen = data.resumen;
-      document.getElementById("prep-total").textContent = resumen.originales;
-      document.getElementById("prep-eliminados").textContent = resumen.eliminados;
-      document.getElementById("prep-finales").textContent = resumen.finales;
-      document.getElementById("prep-salario-ok").textContent = resumen.transformaciones_salario;
-      document.getElementById("prep-rellenos").textContent = resumen.rellenos.join(", ");
-      document.getElementById("prep-columnas-eliminadas").textContent = resumen.columnas_eliminadas.join(", ");
-      document.getElementById("prep-limpieza").textContent = resumen.caracteres_limpiados ? "Sí" : "No";
-      document.getElementById("prep-habilidades").textContent = resumen.habilidades.join(", ");
+  .then(res => res.json())
+  .then(data => {
+    const resumen = data.resumen;
+    document.getElementById("prep-total").textContent = resumen.originales;
+    document.getElementById("prep-eliminados").textContent = resumen.eliminados;
+    document.getElementById("prep-finales").textContent = resumen.finales;
+    document.getElementById("prep-salario-ok").textContent = resumen.transformaciones_salario;
+    document.getElementById("prep-rellenos").textContent = resumen.rellenos.join(", ");
+    document.getElementById("prep-columnas-eliminadas").textContent = resumen.columnas_eliminadas.join(", ");
+    document.getElementById("prep-limpieza").textContent = resumen.caracteres_limpiados ? "Sí" : "No";
+    document.getElementById("prep-habilidades").textContent = resumen.habilidades.join(", ");
+      
+    const antes = data.preview_antes;
+    const despues = data.preview_despues;
 
-      alert("CSV procesado exitosamente.");
-    })
-    .catch(() => alert("Error al subir el archivo."));
+    const tablaAntes = document.getElementById("tabla-antes");
+    const tablaDespues = document.getElementById("tabla-despues");
+
+    tablaAntes.innerHTML = generarTablaHTML(antes);
+    tablaDespues.innerHTML = generarTablaHTML(despues);
+    alert("CSV procesado exitosamente.");
+  })
+
+  .catch(() => alert("Error al subir el archivo."));
 });
 
+function generarTablaHTML(data) {
+  if (!data || data.length === 0) return "<p>No hay datos</p>";
+  const columnas = Object.keys(data[0]);
+  const thead = `<thead><tr>${columnas.map(col => `<th>${col}</th>`).join("")}</tr></thead>`;
+  const tbody = `<tbody>${data.map(row => `<tr>${columnas.map(col => `<td>${row[col]}</td>`).join("")}</tr>`).join("")}</tbody>`;
+
+  return `<table class="tabla-estilo">${thead}${tbody}</table>`;
+}
 </script>
 </body>
 </html>
