@@ -289,7 +289,9 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
 
         return {
             "message": f"{len(df_final)} registros procesados y guardados exitosamente.",
-            "resumen": resumen
+            "resumen": resumen,
+            "preview_antes": preview_antes,
+            "preview_despues": preview_despues
         }
 
     except Exception as e:
@@ -300,6 +302,4 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
             "message": "❌ Error al procesar el archivo.",
             "error": str(e),
             "detalle": error_trace,  # Opcional para debug
-            "preview_antes": preview_antes,
-            "preview_despues": preview_despues
         }
