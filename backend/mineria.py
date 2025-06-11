@@ -1,20 +1,21 @@
 import pandas as pd
 import re
 
-def procesar_datos_computrabajo(csv_path):
+def procesar_datos_computrabajo(csv_path, df_origen=None):
     """
     Procesa un archivo CSV crudo de Computrabajo.
     Detecta carrera, habilidades técnicas y blandas,
     y devuelve un DataFrame (csv) limpio y estructurado.
     """
     # Leer archivo CSV
-    try:
-        df_origen = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
-    except UnicodeDecodeError:
+    if df_origen is None:
         try:
-            df_origen = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
-        except Exception as e:
-            raise ValueError(f"No se pudo leer el CSV: {e}")
+            df_origen = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
+        except UnicodeDecodeError:
+            try:
+                df_origen = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
+            except Exception as e:
+                raise ValueError(f"No se pudo leer el CSV: {e}")
         
     df_antes = df_origen.head(5).copy()
     df = df_origen.copy()
@@ -140,7 +141,6 @@ def procesar_datos_computrabajo(csv_path):
         "caracteres_limpiados": True,
         "habilidades": columnas_detectadas
     }
-
     
     # Filtrar solo habilidades activas por fila
     def filtrar_activas(row, columnas):
