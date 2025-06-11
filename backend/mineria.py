@@ -13,7 +13,10 @@ def procesar_datos_computrabajo(csv_path):
     except UnicodeDecodeError:
         df = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
 
-    preview_antes = df.head(5).copy()
+    # Guardar el total de registros ORIGINALES antes de cualquier filtro
+    total_original = len(df)
+    # Preview ANTES (capturamos los datos crudos INMEDIATAMENTE)
+    preview_antes = df.head(5).copy().to_dict(orient='records')
 
     # LIMPIEZA DE SALARIO
     df['Salario'] = df['Salario'].fillna('').astype(str).str.replace(r"\(.*?\)", "", regex=True).str.strip()
@@ -123,8 +126,8 @@ def procesar_datos_computrabajo(csv_path):
     columnas_detectadas = [col for col in df.columns if col.startswith("hard_") or col.startswith("soft_")]
 
     resumen = {
-        "originales": len(pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')),
-        "eliminados": len(pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')) - len(df),
+        "originales": total_original,
+        "eliminados": total_original - len(df),
         "finales": len(df),
         "transformaciones_salario": df["salary"].notna().sum() if "salary" in df else 0,
         "rellenos": rellenados,
@@ -136,6 +139,4 @@ def procesar_datos_computrabajo(csv_path):
     # Preview DESPUÉS del procesamiento (solo con columnas finales)
     preview_despues = df.head(5).to_dict(orient='records')
 
-    # Convertir el preview_antes a formato compatible (conservando datos crudos)
-    preview_antes = preview_antes.to_dict(orient='records')
     return df_final, resumen, columnas_detectadas, preview_antes, preview_despues
