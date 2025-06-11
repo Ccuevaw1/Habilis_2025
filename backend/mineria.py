@@ -9,12 +9,16 @@ def procesar_datos_computrabajo(csv_path):
     """
     # Leer archivo CSV
     try:
-        df = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
+        df_origen = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
     except UnicodeDecodeError:
-        df = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
+        try:
+            df_origen = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
+        except Exception as e:
+            raise ValueError(f"No se pudo leer el CSV: {e}")
+        
     df_antes = df_origen.head(5).copy()
     df = df_origen.copy()
-    
+
     # LIMPIEZA DE SALARIO
     df['Salario'] = df['Salario'].fillna('').astype(str).str.replace(r"\(.*?\)", "", regex=True).str.strip()
     df[['Salario_Simbolo', 'Salario_Valor']] = df['Salario'].str.extract(r'(\D+)?([\d.,]+)')
