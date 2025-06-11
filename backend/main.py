@@ -31,6 +31,28 @@ def get_db():
     finally:
         db.close()
 
+# def obtener_resumen_procesamiento(df_original, df_filtrado, columnas_detectadas):
+#     columnas_eliminadas = [
+#         'Subtítulo', 'Calificación', 'URL_Empresa', 'Región',
+#         'Requerimientos', 'Contrato', 'Descripción', 'texto_skills', 'Acerca_de_Empresa'
+#     ]
+
+#     campos_rellenados = []
+#     for campo in ['company', 'salary', 'modality']:
+#         if campo in df_filtrado.columns and df_filtrado[campo].isna().sum() > 0:
+#             campos_rellenados.append(campo)
+
+#     return {
+#         "originales": len(df_original),
+#         "eliminados": len(df_original) - len(df_filtrado),
+#         "finales": len(df_filtrado),
+#         "transformaciones_salario": df_filtrado["salary"].notna().sum() if "salary" in df_filtrado else 0,
+#         "rellenos": campos_rellenados,
+#         "columnas_eliminadas": columnas_eliminadas,
+#         "caracteres_limpiados": True,
+#         "habilidades": columnas_detectadas
+#     }
+
 @app.get("/")
 def read_root():
     return {"message": "Backend is ready"}
@@ -224,12 +246,12 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
 
         # Leer CSV original con manejo robusto de encoding
         try:
-            df_origen = pd.read_csv(path_csv, encoding="utf-8", sep=";", on_bad_lines='skip')
+            df_original = pd.read_csv(path_csv, encoding="utf-8", sep=";", on_bad_lines='skip')
         except UnicodeDecodeError:
-            df_origen = pd.read_csv(path_csv, encoding="latin1", sep=";", on_bad_lines='skip')
+            df_original = pd.read_csv(path_csv, encoding="latin1", sep=";", on_bad_lines='skip')
 
         # Procesar archivo CSV (mineria.py)
-        df_final, resumen, columnas_detectadas, preview_antes, preview_despues = procesar_datos_computrabajo(path_csv, df_origen)
+        df_final, resumen, columnas_detectadas = procesar_datos_computrabajo(path_csv)
 
         # Verificar si df_final está vacío (importante validación)
         if df_final.empty:
@@ -267,9 +289,7 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
 
         return {
             "message": f"{len(df_final)} registros procesados y guardados exitosamente.",
-            "resumen": resumen,
-            "preview_antes": preview_antes,
-            "preview_despues": preview_despues
+            "resumen": resumen
         }
 
     except Exception as e:
@@ -279,5 +299,5 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
         return {
             "message": "❌ Error al procesar el archivo.",
             "error": str(e),
-            "detalle": error_trace,  # Opcional para debug
+            "detalle": error_trace  # Opcional para debug
         }
