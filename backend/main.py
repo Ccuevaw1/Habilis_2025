@@ -31,27 +31,6 @@ def get_db():
     finally:
         db.close()
 
-def obtener_resumen_procesamiento(df_original, df_filtrado, columnas_detectadas):
-    columnas_eliminadas = [
-        'Subtítulo', 'Calificación', 'URL_Empresa', 'Región',
-        'Requerimientos', 'Contrato', 'Descripción', 'texto_skills', 'Acerca_de_Empresa'
-    ]
-
-    campos_rellenados = []
-    for campo in ['company', 'salary', 'modality']:
-        if campo in df_filtrado.columns and df_filtrado[campo].isna().sum() > 0:
-            campos_rellenados.append(campo)
-
-    return {
-        "originales": len(df_original),
-        "eliminados": len(df_original) - len(df_filtrado),
-        "finales": len(df_filtrado),
-        "transformaciones_salario": df_filtrado["salary"].notna().sum() if "salary" in df_filtrado else 0,
-        "rellenos": campos_rellenados,
-        "columnas_eliminadas": columnas_eliminadas,
-        "caracteres_limpiados": True,
-        "habilidades": columnas_detectadas
-    }
 
 @app.get("/")
 def read_root():
