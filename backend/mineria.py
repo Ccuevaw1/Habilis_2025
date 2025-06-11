@@ -12,6 +12,8 @@ def procesar_datos_computrabajo(csv_path):
         df = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
     except UnicodeDecodeError:
         df = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
+    df_antes = df_origen.head(5).copy()
+    df = df_origen.copy()
     
     # LIMPIEZA DE SALARIO
     df['Salario'] = df['Salario'].fillna('').astype(str).str.replace(r"\(.*?\)", "", regex=True).str.strip()
@@ -135,7 +137,7 @@ def procesar_datos_computrabajo(csv_path):
         "habilidades": columnas_detectadas
     }
 
-    df_antes = df_origen.head(5).copy()
+    
     # Filtrar solo habilidades activas por fila
     def filtrar_activas(row, columnas):
         return {col: row.get(col, False if col.startswith("hard_") or col.startswith("soft_") else "") for col in columnas}
