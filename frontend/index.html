@@ -120,7 +120,7 @@
       </div>
     </div>
 
-    <div class="grafico-card" id="evaluacion-modelo-container" style="grid-column: 1 / span 2; grid-row: 5;">
+    <div class="grafico-card" id="evaluacion-modelo-container" style="grid-column: 1 / span 2; grid-row: 6;">
       <h3>Evaluación del Modelo de Minería</h3>
       <ul id="resumen-evaluacion">
         <li>Precisión estimada: <span id="eval-precision"></span></li>
@@ -390,21 +390,16 @@ inputManual.addEventListener("change", () => {
     .then(res => res.json())
     .then(data => {
       alert(data.mensaje || "Precisión calculada.");
-      console.log("Evaluación completa:", data);
-      // Aquí puedes llamar a otra función para mostrar los datos si quieres
+
+      // Mostrar resultados directamente en la tarjeta
+      document.getElementById("eval-precision").textContent = data.precision ?? "N/A";
+      document.getElementById("eval-recall").textContent = data.recall ?? "N/A";
+      document.getElementById("eval-cobertura").textContent = data.cobertura_media ?? "N/A";
+      document.getElementById("eval-ruidosas").textContent = Object.entries(data.habilidades_ruidosas || {})
+        .map(([h, v]) => `${h} (${v})`).join(", ");
     })
     .catch(() => alert("Error al verificar el modelo."));
 });
-
-fetch("https://habilis2025-production.up.railway.app/evaluacion-modelo/")
-  .then(res => res.json())
-  .then(data => {
-    document.getElementById("eval-precision").textContent = data.precision ?? "N/A";
-    document.getElementById("eval-recall").textContent = data.recall ?? "N/A";
-    document.getElementById("eval-cobertura").textContent = data.cobertura_media ?? "N/A";
-    document.getElementById("eval-ruidosas").textContent = Object.entries(data.habilidades_ruidosas || {})
-      .map(([h, v]) => `${h} (${v})`).join(", ");
-  });
 
 </script>
 </body>
