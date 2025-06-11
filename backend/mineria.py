@@ -124,7 +124,7 @@ def procesar_datos_computrabajo(csv_path):
         df_original = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
     except UnicodeDecodeError:
         df_original = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
-    df = df_original.copy()
+        
 
     resumen = {
         "originales": len(df_original),
@@ -136,6 +136,7 @@ def procesar_datos_computrabajo(csv_path):
         "caracteres_limpiados": True,
         "habilidades": columnas_detectadas
     }
+    df = df_original.copy()
     df_antes = df.head(5).to_dict(orient='records')
     df_despues = df_final.head(5).to_dict(orient='records')
     return df_final, resumen, columnas_detectadas, df_antes, df_despues
