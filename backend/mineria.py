@@ -1,25 +1,18 @@
 import pandas as pd
 import re
 
-def procesar_datos_computrabajo(csv_path, df_origen=None):
+def procesar_datos_computrabajo(csv_path):
     """
     Procesa un archivo CSV crudo de Computrabajo.
     Detecta carrera, habilidades técnicas y blandas,
-    y devuelve un DataFrame (csv) limpio y estructurado.
+    y devuelve un DataFrame limpio y estructurado.
     """
     # Leer archivo CSV
-    if df_origen is None:
-        try:
-            df_origen = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
-        except UnicodeDecodeError:
-            try:
-                df_origen = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
-            except Exception as e:
-                raise ValueError(f"No se pudo leer el CSV: {e}")
-        
-    df_antes = df_origen.head(5).copy()
-    df = df_origen.copy()
-
+    try:
+        df = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
+    except UnicodeDecodeError:
+        df = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
+    
     # LIMPIEZA DE SALARIO
     df['Salario'] = df['Salario'].fillna('').astype(str).str.replace(r"\(.*?\)", "", regex=True).str.strip()
     df[['Salario_Simbolo', 'Salario_Valor']] = df['Salario'].str.extract(r'(\D+)?([\d.,]+)')
@@ -126,14 +119,10 @@ def procesar_datos_computrabajo(csv_path, df_origen=None):
     # Guardar para estadísticas
     df_final = df[columnas_finales].copy()
     columnas_detectadas = [col for col in df.columns if col.startswith("hard_") or col.startswith("soft_")]
-    try:
-        df_origen = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
-    except UnicodeDecodeError:
-        df_origen = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
 
     resumen = {
-        "originales": len(df_origen),
-        "eliminados": len(df_origen) - len(df),
+        "originales": len(pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')),
+        "eliminados": len(pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')) - len(df),
         "finales": len(df),
         "transformaciones_salario": df["salary"].notna().sum() if "salary" in df else 0,
         "rellenos": rellenados,
@@ -141,13 +130,4 @@ def procesar_datos_computrabajo(csv_path, df_origen=None):
         "caracteres_limpiados": True,
         "habilidades": columnas_detectadas
     }
-    
-    # Filtrar solo habilidades activas por fila
-    def filtrar_activas(row, columnas):
-        return {col: row.get(col, False if col.startswith("hard_") or col.startswith("soft_") else "") for col in columnas}
-
-    df_despues = df_final.head(5).to_dict(orient='records')
-    preview_despues = [filtrar_activas(row, columnas_finales + columnas_detectadas) for row in df_despues]
-
-    return df_final, resumen, columnas_detectadas, df_antes.to_dict(orient='records'), preview_despues
-    
+    return df_final, resumen, columnas_detectadas
