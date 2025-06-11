@@ -89,7 +89,7 @@
     </div>
 
     <div class="grafico-card" id="preparacion-datos-container" style="grid-column: 1 / span 2; grid-row: 4;">
-      <h3>Resumen de Preparación de Datos (CRISP-DM)</h3>
+      <h3>Resumen de Preparación de los Datos</h3>
       <ul id="resumen-preparacion">
         <li>Total de registros en el CSV original: <span id="prep-total"></span></li>
         <li>Registros eliminados: <span id="prep-eliminados"></span></li>
@@ -103,15 +103,15 @@
     </div>
 
     <div class="grafico-card" id="preview-modelado-container" style="grid-column: 1 / span 2; grid-row: 5;">
-      <h3>Antes y Después del Modelado (Primeros 5 Registros)</h3>
+      <h3>Datos después del modelado</h3>
       <div style="display: flex; gap: 1rem;">
         <!-- <div style="flex: 1;">
           <h4>Antes (Datos Crudos)</h4>
           <table class="tabla-estilo" id="tabla-antes"></table>
         </div> -->
         <div style="flex: 1;">
-          <h4>Después (Datos Procesados)</h4>
-          <div class="scroll-horizontal">
+          <h4>(Datos Procesados)</h4>
+          <div style="min-width: 900px;">
             <table class="tabla-estilo" id="tabla-despues"></table>
           </div>
         </div>
