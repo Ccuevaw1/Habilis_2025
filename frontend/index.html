@@ -318,33 +318,36 @@ fileInput.addEventListener("change", () => {
 });
 
 function generarTablaHTML(data) {
-   if (!data || !Array.isArray(data) || data.length === 0) {
+  if (!data || !Array.isArray(data) || data.length === 0) {
     return '<p class="error">No hay datos disponibles</p>';
   }
 
   try {
-    // Obtener todas las columnas únicas de todos los registros
-    const columnas = [...new Set(data.flatMap(row => Object.keys(row)))];
-    
-    const thead = `<thead><tr>${
-      columnas.map(col => `<th>${col}</th>`).join('')
-    }</tr></thead>`;
-    
-    const tbody = `<tbody>${
-      data.map(row => {
-        return `<tr>${
-          columnas.map(col => {
-            const value = row[col];
-            // Manejar valores undefined/null y objetos/arrays
-            if (value === undefined || value === null) return '<td>-</td>';
-            if (typeof value === 'object') {
-              return `<td>${JSON.stringify(value)}</td>`;
-            }
-            return `<td>${String(value)}</td>`;
-          }).join('')
-        }</tr>`;
-      }).join('')
-    }</tbody>`;
+    // Separar columnas comunes y habilidades
+    const allKeys = [...new Set(data.flatMap(row => Object.keys(row)))];
+
+    const columnasBase = ["career", "title", "company", "workday", "modality", "salary"];
+    const columnasHabilidades = allKeys.filter(col => col.startsWith("hard_") || col.startsWith("soft_"));
+
+    // Filtrar columnas de habilidades con al menos un 'true'
+    const columnasHabilidadesActivas = columnasHabilidades.filter(col =>
+      data.some(row => row[col] === true || row[col] === "true")
+    );
+
+    const columnasFinales = [...columnasBase, ...columnasHabilidadesActivas];
+
+    // Crear tabla
+    const thead = `<thead><tr>${columnasFinales.map(col => `<th>${col}</th>`).join('')}</tr></thead>`;
+
+    const tbody = `<tbody>${data.map(row => {
+      return `<tr>${
+        columnasFinales.map(col => {
+          const value = row[col];
+          if (value === undefined || value === null) return '<td>-</td>';
+          return `<td>${String(value)}</td>`;
+        }).join('')
+      }</tr>`;
+    }).join('')}</tbody>`;
 
     return `<table class="tabla-estilo">${thead}${tbody}</table>`;
   } catch (error) {
