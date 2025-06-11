@@ -2,23 +2,23 @@ import pandas as pd
 import re
 
 def procesar_datos_computrabajo(csv_path):
-    """
-    Procesa un archivo CSV crudo de Computrabajo.
-    Detecta carrera, habilidades técnicas y blandas,
-    y devuelve un DataFrame limpio y estructurado.
-    """
-    # Leer archivo CSV
+    # Leer archivo original una sola vez
     try:
-        df = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
+        df_original = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
     except UnicodeDecodeError:
-        df = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
+        df_original = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
+
+    # Guardar vista previa cruda (antes de cualquier procesamiento)
+    preview_antes = df_original.head(5).to_dict(orient='records')
+
+    # Hacer una copia para procesar
+    df = df_original.copy()
 
     # LIMPIEZA DE SALARIO
     df['Salario'] = df['Salario'].fillna('').astype(str).str.replace(r"\(.*?\)", "", regex=True).str.strip()
     df[['Salario_Simbolo', 'Salario_Valor']] = df['Salario'].str.extract(r'(\D+)?([\d.,]+)')
     df['Salario'] = df['Salario'].str.replace('.', '', regex=False).str.replace(',', '.', regex=False)
     df['Salario'] = pd.to_numeric(df['Salario'], errors='coerce')
-    
     df.drop(columns='Salario_Simbolo', inplace=True)
     df.drop(columns='Salario', inplace=True)
     df.rename(columns={'Salario_Valor': 'Salario'}, inplace=True)
@@ -116,13 +116,12 @@ def procesar_datos_computrabajo(csv_path):
     columnas_finales = ['career', 'title', 'company', 'workday', 'modality', 'salary'] + \
         [col for col in df.columns if col.startswith("hard_") or col.startswith("soft_")]
 
-    # Guardar para estadísticas
     df_final = df[columnas_finales].copy()
     columnas_detectadas = [col for col in df.columns if col.startswith("hard_") or col.startswith("soft_")]
 
     resumen = {
-        "originales": len(pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')),
-        "eliminados": len(pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')) - len(df),
+        "originales": len(df_original),
+        "eliminados": len(df_original) - len(df),
         "finales": len(df),
         "transformaciones_salario": df["salary"].notna().sum() if "salary" in df else 0,
         "rellenos": rellenados,
@@ -130,6 +129,8 @@ def procesar_datos_computrabajo(csv_path):
         "caracteres_limpiados": True,
         "habilidades": columnas_detectadas
     }
-    df_antes = df.head(5).to_dict(orient='records')
-    df_despues = df_final.head(5).to_dict(orient='records')
-    return df_final, resumen, columnas_detectadas, df_antes, df_despues
+
+    # Previews para frontend
+    preview_despues = df_final.head(5).to_dict(orient='records')
+
+    return df_final, resumen, columnas_detectadas, preview_antes, preview_despues
