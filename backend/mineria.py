@@ -124,6 +124,7 @@ def procesar_datos_computrabajo(csv_path):
         df_original = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
     except UnicodeDecodeError:
         df_original = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
+    df = df_original.copy()
 
     resumen = {
         "originales": len(df_original),
