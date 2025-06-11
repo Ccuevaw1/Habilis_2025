@@ -390,13 +390,15 @@ inputManual.addEventListener("change", () => {
     .then(res => res.json())
     .then(data => {
       alert(data.mensaje || "Precisión calculada.");
-
-      // Mostrar resultados directamente en la tarjeta
-      document.getElementById("eval-precision").textContent = data.precision ?? "N/A";
-      document.getElementById("eval-recall").textContent = data.recall ?? "N/A";
-      document.getElementById("eval-cobertura").textContent = data.cobertura_media ?? "N/A";
-      document.getElementById("eval-ruidosas").textContent = Object.entries(data.habilidades_ruidosas || {})
-        .map(([h, v]) => `${h} (${v})`).join(", ");
+      fetch("https://habilis2025-production.up.railway.app/evaluacion-modelo/")
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById("eval-precision").textContent = data.precision ?? "N/A";
+          document.getElementById("eval-recall").textContent = data.recall ?? "N/A";
+          document.getElementById("eval-cobertura").textContent = data.cobertura_media ?? "N/A";
+          document.getElementById("eval-ruidosas").textContent = Object.entries(data.habilidades_ruidosas || {})
+            .map(([h, v]) => `${h} (${v})`).join(", ");
+        });
     })
     .catch(() => alert("Error al verificar el modelo."));
 });
