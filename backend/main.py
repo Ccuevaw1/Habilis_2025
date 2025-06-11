@@ -249,17 +249,15 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
             df_original = pd.read_csv(path_csv, encoding="utf-8", sep=";", on_bad_lines='skip')
         except UnicodeDecodeError:
             df_original = pd.read_csv(path_csv, encoding="latin1", sep=";", on_bad_lines='skip')
-
-        preview_antes = df_original.head(5).to_dict(orient='records')
-
+        
         # Procesar archivo CSV (mineria.py)
-        df_final, resumen, columnas_detectadas, _, preview_despues = procesar_datos_computrabajo(path_csv)
+        df_final, resumen, columnas_detectadas, preview_despues = procesar_datos_computrabajo(path_csv)
 
        # Asegurar que ambos previews sean listas válidas (ya vienen como dicts)
-        if not isinstance(preview_antes, list):
-            preview_antes_list = []
-        else:
-            preview_antes_list = preview_antes
+        # if not isinstance(preview_antes, list):
+        #     preview_antes_list = []
+        # else:
+        #     preview_antes_list = preview_antes
 
         if not isinstance(preview_despues, list):
             preview_despues_list = []
@@ -302,7 +300,6 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
         return {
             "message": f"{len(df_final)} registros procesados y guardados exitosamente.",
             "resumen": resumen,
-            "preview_antes": preview_antes_list,
             "preview_despues": preview_despues_list
         }
 
