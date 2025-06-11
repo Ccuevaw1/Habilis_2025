@@ -348,6 +348,6 @@ def obtener_evaluacion_modelo():
             "precision": None,
             "recall": None,
             "cobertura_media": None,
-            "habilidades_ruidosas": [],
+            "habilidades_ruidosas": {},
             "mensaje": "Aún no se ha calculado la evaluación del modelo."
         }
