@@ -244,21 +244,18 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
         with open(path_csv, "wb") as f:
             shutil.copyfileobj(file.file, f)
 
-        # Leer CSV original (df_origen) para preview_antes
+        # Leer CSV original con manejo robusto de encoding
         try:
             df_origen = pd.read_csv(path_csv, encoding="utf-8", sep=";", on_bad_lines='skip')
         except UnicodeDecodeError:
             df_origen = pd.read_csv(path_csv, encoding="latin1", sep=";", on_bad_lines='skip')
 
-        # Procesar archivo CSV (mineria.py), pasando df_origen como segundo argumento
+        # Procesar archivo CSV (mineria.py)
         df_final, resumen, columnas_detectadas, preview_antes, preview_despues = procesar_datos_computrabajo(path_csv, df_origen)
 
-        # Validar si el DataFrame final está vacío
+        # Verificar si df_final está vacío (importante validación)
         if df_final.empty:
-            return {
-                "message": "❌ No se generaron registros válidos tras procesar el CSV.",
-                "error": "DataFrame vacío."
-            }
+            return {"message": "❌ No se generaron registros válidos tras procesar el CSV.", "error": "DataFrame vacío."}
 
         # Asegurar tipos correctos para el frontend
         resumen = {
@@ -272,7 +269,7 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
             "habilidades": resumen["habilidades"]
         }
 
-        # Insertar datos procesados en la base de datos
+        # Insertar datos procesados en BD
         db = SessionLocal()
         db.query(Habilidad).delete()
         db.commit()
@@ -304,5 +301,5 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
         return {
             "message": "❌ Error al procesar el archivo.",
             "error": str(e),
-            "detalle": error_trace  # Útil para depuración
+            "detalle": error_trace,  # Opcional para debug
         }

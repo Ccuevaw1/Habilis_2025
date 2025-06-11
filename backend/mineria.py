@@ -140,10 +140,8 @@ def procesar_datos_computrabajo(csv_path):
     def filtrar_activas(row, columnas):
         return {col: row.get(col, False if col.startswith("hard_") or col.startswith("soft_") else "") for col in columnas}
 
-
     df_despues = df_final.head(5).to_dict(orient='records')
     preview_despues = [filtrar_activas(row, columnas_finales + columnas_detectadas) for row in df_despues]
-
 
     return df_final, resumen, columnas_detectadas, df_antes.to_dict(orient='records'), preview_despues
     

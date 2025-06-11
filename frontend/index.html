@@ -298,11 +298,28 @@ fileInput.addEventListener("change", () => {
     const tablaAntes = document.getElementById("tabla-antes");
     const tablaDespues = document.getElementById("tabla-despues");
 
-    tablaAntes.innerHTML = generarTablaHTML(antes);
-    tablaDespues.innerHTML = generarTablaHTML(despues);
+    const theadAntes = tablaAntes.querySelector("thead") || tablaAntes.createTHead();
+    const tbodyAntes = tablaAntes.querySelector("tbody") || tablaAntes.createTBody();
+    const theadDespues = tablaDespues.querySelector("thead") || tablaDespues.createTHead();
+    const tbodyDespues = tablaDespues.querySelector("tbody") || tablaDespues.createTBody();
+
+    function renderizarTabla(thead, tbody, data) {
+      if (!data || data.length === 0) {
+        thead.innerHTML = "";
+        tbody.innerHTML = "<tr><td colspan='100%'>Sin datos</td></tr>";
+        return;
+      }
+      const columnas = Object.keys(data[0]);
+      thead.innerHTML = `<tr>${columnas.map(col => `<th>${col}</th>`).join("")}</tr>`;
+      tbody.innerHTML = data.map(row =>
+        `<tr>${columnas.map(col => `<td>${row[col]}</td>`).join("")}</tr>`).join("");
+    }
+
+    renderizarTabla(theadAntes, tbodyAntes, antes);
+    renderizarTabla(theadDespues, tbodyDespues, despues);
+
     alert("CSV procesado exitosamente.");
   })
-
   .catch(() => alert("Error al subir el archivo."));
 });
 
