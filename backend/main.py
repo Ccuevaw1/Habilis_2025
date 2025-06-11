@@ -253,6 +253,9 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
         # Procesar archivo CSV (mineria.py)
         df_final, resumen, columnas_detectadas, preview_antes, preview_despues = procesar_datos_computrabajo(path_csv)
 
+        # Convertir los previews a listas de diccionariosAdd commentMore actions
+        preview_antes_list = preview_antes if isinstance(preview_antes, list) else preview_antes.to_dict('records')
+        preview_despues_list = preview_despues if isinstance(preview_despues, list) else preview_despues.to_dict('records')
         # Verificar si df_final está vacío (importante validación)
         if df_final.empty:
             return {"message": "❌ No se generaron registros válidos tras procesar el CSV.", "error": "DataFrame vacío."}
@@ -290,8 +293,8 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
         return {
             "message": f"{len(df_final)} registros procesados y guardados exitosamente.",
             "resumen": resumen,
-            "preview_antes": preview_antes,
-            "preview_despues": preview_despues
+            "preview_antes": preview_antes_list,
+            "preview_despues": preview_despues_list
         }
 
     except Exception as e:

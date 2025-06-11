@@ -294,7 +294,18 @@ fileInput.addEventListener("change", () => {
       
     const antes = data.preview_antes;
     const despues = data.preview_despues;
+    console.log("Preview antes:", antes);
+    console.log("Preview después:", despues);
 
+    // Validación de estructura
+    if (!Array.isArray(antes)) {
+        console.error("Preview_antes no es un array:", antes);
+        return;
+    }
+    if (!Array.isArray(despues)) {
+        console.error("Preview_despues no es un array:", despues);
+        return;
+    }
     const tablaAntes = document.getElementById("tabla-antes");
     const tablaDespues = document.getElementById("tabla-despues");
 
@@ -307,13 +318,40 @@ fileInput.addEventListener("change", () => {
 });
 
 function generarTablaHTML(data) {
-  if (!data || data.length === 0) return "<p>No hay datos</p>";
-  const columnas = Object.keys(data[0]);
-  const thead = `<thead><tr>${columnas.map(col => `<th>${col}</th>`).join("")}</tr></thead>`;
-  const tbody = `<tbody>${data.map(row => `<tr>${columnas.map(col => `<td>${row[col]}</td>`).join("")}</tr>`).join("")}</tbody>`;
+   if (!data || !Array.isArray(data) || data.length === 0) {
+    return '<p class="error">No hay datos disponibles</p>';
+  }
 
-  return `<table class="tabla-estilo">${thead}${tbody}</table>`;
-}
+  try {
+    // Obtener todas las columnas únicas de todos los registros
+    const columnas = [...new Set(data.flatMap(row => Object.keys(row)))];
+    
+    const thead = `<thead><tr>${
+      columnas.map(col => `<th>${col}</th>`).join('')
+    }</tr></thead>`;
+    
+    const tbody = `<tbody>${
+      data.map(row => {
+        return `<tr>${
+          columnas.map(col => {
+            const value = row[col];
+            // Manejar valores undefined/null y objetos/arrays
+            if (value === undefined || value === null) return '<td>-</td>';
+            if (typeof value === 'object') {
+              return `<td>${JSON.stringify(value)}</td>`;
+            }
+            return `<td>${String(value)}</td>`;
+          }).join('')
+        }</tr>`;
+      }).join('')
+    }</tbody>`;
+
+    return `<table class="tabla-estilo">${thead}${tbody}</table>`;
+  } catch (error) {
+    console.error('Error generando tabla:', error);
+    return `<p class="error">Error mostrando datos: ${error.message}</p>`;
+  }
+} 
 </script>
 </body>
 </html>
