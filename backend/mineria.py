@@ -136,6 +136,6 @@ def procesar_datos_computrabajo(csv_path):
         "caracteres_limpiados": True,
         "habilidades": columnas_detectadas
     }
-    df_antes = df.head(5).to_dict(orient='records')
+    # df_antes = df.head(5).to_dict(orient='records')
     df_despues = df_final.head(5).to_dict(orient='records')
     return df_final, resumen, columnas_detectadas, df_antes, df_despues
