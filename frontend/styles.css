@@ -233,3 +233,12 @@ canvas {
 .btn-subir:hover {
   background-color: #2f3fa1;
 }
+
+.scroll-horizontal {
+  overflow-x: auto;
+  width: 100%;
+}
+.scroll-horizontal table {
+  min-width: 900px; /* o más si lo necesitas */
+  border-collapse: collapse;
+}
