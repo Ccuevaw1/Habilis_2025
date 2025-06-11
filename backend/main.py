@@ -163,8 +163,9 @@ async def verificar_modelo(file: UploadFile = File(...)):
         # Extraer columnas de habilidades para comparar
         columnas_habilidades = [col for col in df_real.columns if col.startswith("hard_") or col.startswith("soft_")]
 
-        y_true = df_real[columnas_habilidades].astype(int)
-        y_pred = df_predicho[columnas_habilidades].astype(int)
+        y_true = df_real[columnas_habilidades].applymap(lambda x: int(str(x).lower() in ["1", "true", "t"])).reset_index(drop=True)
+        y_pred = df_predicho[columnas_habilidades].applymap(lambda x: int(str(x).lower() in ["1", "true", "t"])).reset_index(drop=True)
+
 
         # Calcular precisión y recall
         precision = accuracy_score(y_true.values.flatten(), y_pred.values.flatten())
