@@ -9,12 +9,9 @@ def procesar_datos_computrabajo(csv_path):
     """
     # Leer archivo CSV
     try:
-        df_original = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
+        df = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
     except UnicodeDecodeError:
-        df_original = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
-
-    df_antes = df_original.head(5).to_dict(orient='records')
-    df = df_original.copy()
+        df = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
 
     # LIMPIEZA DE SALARIO
     df['Salario'] = df['Salario'].fillna('').astype(str).str.replace(r"\(.*?\)", "", regex=True).str.strip()
@@ -133,6 +130,6 @@ def procesar_datos_computrabajo(csv_path):
         "caracteres_limpiados": True,
         "habilidades": columnas_detectadas
     }
-    
+    df_antes = df.head(5).to_dict(orient='records')
     df_despues = df_final.head(5).to_dict(orient='records')
     return df_final, resumen, columnas_detectadas, df_antes, df_despues
