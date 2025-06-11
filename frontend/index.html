@@ -29,6 +29,8 @@
       </div>
       <input type="file" id="inputCsv" accept=".csv" style="display: none;" />
       <button class="btn-subir" id="btnUpload">Subir CSV</button>
+      <input type="file" id="inputManualCsv" accept=".csv" style="display: none;" />
+      <button class="btn-verificar" id="btnVerificar">Verificar Precisión</button>
       <button class="btn-exportar" id="btnExportar">EXPORTAR</button>
     </div>
   </div>
@@ -118,6 +120,15 @@
       </div>
     </div>
 
+    <div class="grafico-card" id="evaluacion-modelo-container" style="grid-column: 1 / span 2; grid-row: 5;">
+      <h3>Evaluación del Modelo de Minería</h3>
+      <ul id="resumen-evaluacion">
+        <li>Precisión estimada: <span id="eval-precision"></span></li>
+        <li>Recall global: <span id="eval-recall"></span></li>
+        <li>Cobertura media por carrera: <span id="eval-cobertura"></span></li>
+        <li>Habilidades más ruidosas: <span id="eval-ruidosas"></span></li>
+      </ul>
+    </div>
   </main>
 </section>
 
@@ -357,6 +368,44 @@ function generarTablaHTML(data) {
     return `<p class="error">Error mostrando datos: ${error.message}</p>`;
   }
 } 
+
+const inputManual = document.getElementById("inputManualCsv");
+const btnVerificar = document.getElementById("btnVerificar");
+
+btnVerificar.addEventListener("click", () => {
+  inputManual.click();
+});
+
+inputManual.addEventListener("change", () => {
+  const file = inputManual.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  fetch("https://habilis2025-production.up.railway.app/verificar-modelo/", {
+    method: "POST",
+    body: formData
+  })
+    .then(res => res.json())
+    .then(data => {
+      alert(data.mensaje || "Precisión calculada.");
+      console.log("Evaluación completa:", data);
+      // Aquí puedes llamar a otra función para mostrar los datos si quieres
+    })
+    .catch(() => alert("Error al verificar el modelo."));
+});
+
+fetch("https://habilis2025-production.up.railway.app/evaluacion-modelo/")
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("eval-precision").textContent = data.precision ?? "N/A";
+    document.getElementById("eval-recall").textContent = data.recall ?? "N/A";
+    document.getElementById("eval-cobertura").textContent = data.cobertura_media ?? "N/A";
+    document.getElementById("eval-ruidosas").textContent = Object.entries(data.habilidades_ruidosas || {})
+      .map(([h, v]) => `${h} (${v})`).join(", ");
+  });
+
 </script>
 </body>
 </html>

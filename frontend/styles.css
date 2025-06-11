@@ -233,3 +233,12 @@ canvas {
 .btn-subir:hover {
   background-color: #2f3fa1;
 }
+
+#grafico-card ul {
+  padding-left: 1.2rem;
+}
+
+#grafico-card li {
+  margin-bottom: 0.4rem;
+  font-size: 0.95rem;
+}

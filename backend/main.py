@@ -144,6 +144,8 @@ async def subir_csv_crudo(file: UploadFile = File(...)):
 @app.post("/verificar-modelo/")
 async def verificar_modelo(file: UploadFile = File(...)):
     try:
+        import json
+
         # Guardar el archivo cargado
         temp_manual_path = "data/manual.csv"
         with open(temp_manual_path, "wb") as f:
@@ -164,18 +166,40 @@ async def verificar_modelo(file: UploadFile = File(...)):
         y_true = df_real[columnas_habilidades].astype(int)
         y_pred = df_predicho[columnas_habilidades].astype(int)
 
-        # Calcular precisión
+        # Calcular precisión y recall
         precision = accuracy_score(y_true.values.flatten(), y_pred.values.flatten())
+        recall = (y_pred & y_true).sum().sum() / y_true.sum().sum()
 
-        # Preparar y guardar el resultado en un archivo JSON
+        # Cobertura media por carrera
+        if "career" in df_real.columns:
+            carreras = df_real["career"].unique()
+            cobertura = {}
+            for carrera in carreras:
+                subset = df_real[df_real["career"] == carrera]
+                if len(subset) > 0:
+                    sub_pred = df_predicho[df_real["career"] == carrera]
+                    sub_cols = sub_pred[columnas_habilidades]
+                    cobertura[carrera] = sub_cols.sum(axis=1).mean()
+            cobertura_media = round(sum(cobertura.values()) / len(cobertura), 2)
+        else:
+            cobertura_media = None
+
+        # Habilidades más ruidosas
+        errores = abs(y_true - y_pred)
+        errores_por_habilidad = errores.sum().sort_values(ascending=False)
+        habilidades_ruidosas = errores_por_habilidad.head(5).to_dict()
+
+        # Preparar resultado
         resultado = {
             "precision": round(precision, 4),
+            "recall": round(recall, 4),
+            "cobertura_media": cobertura_media,
+            "habilidades_ruidosas": habilidades_ruidosas,
             "mensaje": f"Precisión del modelo de minería: {precision * 100:.2f}%"
         }
 
         os.makedirs("data", exist_ok=True)
-        with open("data/precision_guardada.json", "w") as f:
-            import json
+        with open("data/evaluacion_modelo.json", "w") as f:
             json.dump(resultado, f, indent=2)
 
         return resultado
@@ -183,17 +207,17 @@ async def verificar_modelo(file: UploadFile = File(...)):
     except Exception as e:
         return {"error": str(e)}
 
-@app.get("/precision-mineria/")
-def obtener_precision_modelo():
-    try:
-        with open("data/precision_guardada.json", "r") as f:
-            precision_data = json.load(f)
-        return precision_data
-    except FileNotFoundError:
-        return {
-            "precision": None,
-            "mensaje": "⚠️ Aún no se ha verificado el modelo."
-        }
+# @app.get("/precision-mineria/")
+# def obtener_precision_modelo():
+#     try:
+#         with open("data/precision_guardada.json", "r") as f:
+#             precision_data = json.load(f)
+#         return precision_data
+#     except FileNotFoundError:
+#         return {
+#             "precision": None,
+#             "mensaje": "⚠️ Aún no se ha verificado el modelo."
+#         }
 
 @app.get("/estadisticas/salarios")
 def estadisticas_salarios(carrera: str = Query(..., description="Nombre de la carrera"), db: Session = Depends(get_db)):
@@ -312,4 +336,18 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
             "message": "❌ Error al procesar el archivo.",
             "error": str(e),
             "detalle": error_trace  # Opcional para debug
+        }
+
+@app.get("/evaluacion-modelo/")
+def obtener_evaluacion_modelo():
+    try:
+        with open("data/evaluacion_modelo.json", "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {
+            "precision": None,
+            "recall": None,
+            "cobertura_media": None,
+            "habilidades_ruidosas": [],
+            "mensaje": "Aún no se ha calculado la evaluación del modelo."
         }
