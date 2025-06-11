@@ -105,10 +105,10 @@
     <div class="grafico-card" id="preview-modelado-container" style="grid-column: 1 / span 2; grid-row: 5;">
       <h3>Antes y Después del Modelado (Primeros 5 Registros)</h3>
       <div style="display: flex; gap: 1rem;">
-        <div style="flex: 1;">
+        <!-- <div style="flex: 1;">
           <h4>Antes (Datos Crudos)</h4>
           <table class="tabla-estilo" id="tabla-antes"></table>
-        </div>
+        </div> -->
         <div style="flex: 1;">
           <h4>Después (Datos Procesados)</h4>
           <table class="tabla-estilo" id="tabla-despues"></table>
@@ -294,22 +294,22 @@ fileInput.addEventListener("change", () => {
       
     const antes = data.preview_antes;
     const despues = data.preview_despues;
-    console.log("Preview antes:", antes);
+    // console.log("Preview antes:", antes);
     console.log("Preview después:", despues);
 
     // Validación de estructura
-    if (!Array.isArray(antes)) {
-        console.error("Preview_antes no es un array:", antes);
-        return;
-    }
+    // if (!Array.isArray(antes)) {
+    //     console.error("Preview_antes no es un array:", antes);
+    //     return;
+    // }
     if (!Array.isArray(despues)) {
         console.error("Preview_despues no es un array:", despues);
         return;
     }
-    const tablaAntes = document.getElementById("tabla-antes");
+    // const tablaAntes = document.getElementById("tabla-antes");
     const tablaDespues = document.getElementById("tabla-despues");
 
-    tablaAntes.innerHTML = generarTablaHTML(antes);
+    // tablaAntes.innerHTML = generarTablaHTML(antes);
     tablaDespues.innerHTML = generarTablaHTML(despues);
     alert("CSV procesado exitosamente.");
   })
