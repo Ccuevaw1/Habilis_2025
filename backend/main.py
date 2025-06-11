@@ -254,8 +254,8 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
         df_final, resumen, columnas_detectadas, preview_antes, preview_despues = procesar_datos_computrabajo(path_csv)
         
         # Convertir los previews a listas de diccionarios
-        preview_antes_list = preview_antes if isinstance(preview_antes, list) else preview_antes.to_dict('records')
-        preview_despues_list = preview_despues if isinstance(preview_despues, list) else preview_despues.to_dict('records')
+        preview_antes = preview_antes if isinstance(preview_antes, list) else preview_antes.to_dict('records')
+        preview_despues = preview_despues if isinstance(preview_despues, list) else preview_despues.to_dict('records')
 
         # Verificar si df_final está vacío (importante validación)
         if df_final.empty:
@@ -300,8 +300,8 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
         return {
             "message": f"{len(df_final)} registros procesados y guardados exitosamente.",
             "resumen": resumen,
-            "preview_antes": preview_antes_list,
-            "preview_despues": preview_despues_list
+            "preview_antes": preview_antes,
+            "preview_despues": preview_despues
         }
 
     except Exception as e:

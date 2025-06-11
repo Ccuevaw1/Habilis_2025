@@ -138,6 +138,6 @@ def procesar_datos_computrabajo(csv_path):
     }
     
     # Preview DESPUÉS del procesamiento (solo con columnas finales)
-    preview_despues = df.head(5).to_dict(orient='records')
+    preview_despues = df_final.head(5).to_dict(orient='records')
 
     return df_final, resumen, columnas_detectadas, preview_antes, preview_despues
