@@ -291,6 +291,12 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
         db.commit()
         db.close()
 
+        print("=== DEBUG PREVIEWS ===")
+        print("Tipo preview_antes:", type(preview_antes))
+        print("Tipo preview_despues:", type(preview_despues))
+        print("Columnas ANTES:", preview_antes[0].keys() if preview_antes else "Vacío")
+        print("Columnas DESPUÉS:", preview_despues[0].keys() if preview_despues else "Vacío")
+
         return {
             "message": f"{len(df_final)} registros procesados y guardados exitosamente.",
             "resumen": resumen,

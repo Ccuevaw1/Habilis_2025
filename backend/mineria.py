@@ -16,7 +16,8 @@ def procesar_datos_computrabajo(csv_path):
     # Guardar el total de registros ORIGINALES antes de cualquier filtro
     total_original = len(df)
     # Preview ANTES (capturamos los datos crudos INMEDIATAMENTE)
-    preview_antes = df.head(5).copy().to_dict(orient='records')
+    preview_antes = df.head(5).copy()
+    preview_antes = preview_antes.to_dict(orient='records')
 
     # LIMPIEZA DE SALARIO
     df['Salario'] = df['Salario'].fillna('').astype(str).str.replace(r"\(.*?\)", "", regex=True).str.strip()
