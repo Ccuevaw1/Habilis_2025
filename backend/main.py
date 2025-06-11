@@ -301,9 +301,9 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
     except Exception as e:
         import traceback
         error_trace = traceback.format_exc()
-        print("❌ ERROR DETALLADO:", error_trace)
+        print(" ERROR DETALLADO:", error_trace)
         return {
-            "message": "❌ Error al procesar el archivo.",
+            "message": " Error al procesar el archivo.",
             "error": str(e),
             "detalle": error_trace  # Opcional para debug
         }
