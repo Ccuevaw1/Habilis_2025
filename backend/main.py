@@ -252,10 +252,6 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
 
         # Procesar archivo CSV (mineria.py)
         df_final, resumen, columnas_detectadas, preview_antes, preview_despues = procesar_datos_computrabajo(path_csv)
-        
-        # Convertir los previews a listas de diccionarios
-        preview_antes = preview_antes if isinstance(preview_antes, list) else preview_antes.to_dict('records')
-        preview_despues = preview_despues if isinstance(preview_despues, list) else preview_despues.to_dict('records')
 
         # Verificar si df_final está vacío (importante validación)
         if df_final.empty:
@@ -291,12 +287,6 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
         db.commit()
         db.close()
 
-        print("=== DEBUG PREVIEWS ===")
-        print("Tipo preview_antes:", type(preview_antes))
-        print("Tipo preview_despues:", type(preview_despues))
-        print("Columnas ANTES:", preview_antes[0].keys() if preview_antes else "Vacío")
-        print("Columnas DESPUÉS:", preview_despues[0].keys() if preview_despues else "Vacío")
-
         return {
             "message": f"{len(df_final)} registros procesados y guardados exitosamente.",
             "resumen": resumen,
@@ -307,9 +297,9 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
     except Exception as e:
         import traceback
         error_trace = traceback.format_exc()
-        print(" ERROR DETALLADO:", error_trace)
+        print("❌ ERROR DETALLADO:", error_trace)
         return {
-            "message": " Error al procesar el archivo.",
+            "message": "❌ Error al procesar el archivo.",
             "error": str(e),
             "detalle": error_trace  # Opcional para debug
         }

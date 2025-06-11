@@ -12,12 +12,8 @@ def procesar_datos_computrabajo(csv_path):
         df = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
     except UnicodeDecodeError:
         df = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
-
-    # Guardar el total de registros ORIGINALES antes de cualquier filtro
-    total_original = len(df)
-    # Preview ANTES (capturamos los datos crudos INMEDIATAMENTE)
-    preview_antes = df.head(5).copy()
-    preview_antes = preview_antes.to_dict(orient='records')
+    
+    df_antes = df.head(5).to_dict(orient='records')
 
     # LIMPIEZA DE SALARIO
     df['Salario'] = df['Salario'].fillna('').astype(str).str.replace(r"\(.*?\)", "", regex=True).str.strip()
@@ -127,8 +123,8 @@ def procesar_datos_computrabajo(csv_path):
     columnas_detectadas = [col for col in df.columns if col.startswith("hard_") or col.startswith("soft_")]
 
     resumen = {
-        "originales": total_original,
-        "eliminados": total_original - len(df),
+        "originales": len(pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')),
+        "eliminados": len(pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')) - len(df),
         "finales": len(df),
         "transformaciones_salario": df["salary"].notna().sum() if "salary" in df else 0,
         "rellenos": rellenados,
@@ -136,8 +132,5 @@ def procesar_datos_computrabajo(csv_path):
         "caracteres_limpiados": True,
         "habilidades": columnas_detectadas
     }
-    
-    # Preview DESPUÉS del procesamiento (solo con columnas finales)
-    preview_despues = df_final.head(5).to_dict(orient='records')
-
-    return df_final, resumen, columnas_detectadas, preview_antes, preview_despues
+    df_despues = df_final.head(5).to_dict(orient='records')
+    return df_final, resumen, columnas_detectadas, df_antes, df_despues
