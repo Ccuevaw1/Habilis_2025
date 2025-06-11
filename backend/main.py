@@ -251,7 +251,7 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
             df_original = pd.read_csv(path_csv, encoding="latin1", sep=";", on_bad_lines='skip')
 
         # Procesar archivo CSV (mineria.py)
-        df_final, resumen, columnas_detectadas = procesar_datos_computrabajo(path_csv)
+        df_final, resumen, columnas_detectadas, preview_antes, preview_despues = procesar_datos_computrabajo(path_csv)
 
         # Verificar si df_final está vacío (importante validación)
         if df_final.empty:
@@ -289,7 +289,9 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
 
         return {
             "message": f"{len(df_final)} registros procesados y guardados exitosamente.",
-            "resumen": resumen
+            "resumen": resumen,
+            "preview_antes": preview_antes,
+            "preview_despues": preview_despues
         }
 
     except Exception as e:
