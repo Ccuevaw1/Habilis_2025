@@ -7,6 +7,7 @@ from mineria import procesar_datos_computrabajo
 from sklearn.metrics import accuracy_score
 from models.tiempo import TiempoCarga
 Base.metadata.create_all(bind=engine)
+from fastapi import Body
 import pandas as pd
 import shutil
 import time
@@ -88,6 +89,15 @@ def estadisticas_habilidades(carrera: str = Query(..., description="Nombre de la
     tecnicas_sumadas = df[columnas_tecnicas].sum().sort_values(ascending=False)
     blandas_sumadas = df[columnas_blandas].sum().sort_values(ascending=False)
 
+    habilidades_tecnicas = [
+        {"nombre": formatear_nombre(col), "frecuencia": int(tecnicas_sumadas[col])}
+        for col in tecnicas_sumadas.indexAdd commentMore actions
+    ]
+
+    habilidades_blandas = [
+        {"nombre": formatear_nombre(col), "frecuencia": int(blandas_sumadas[col])}
+        for col in blandas_sumadas.index
+    ]
     # Guardar tiempo de carga
     fin = time.time()
     duracion = round(fin - inicio, 4)
@@ -98,14 +108,8 @@ def estadisticas_habilidades(carrera: str = Query(..., description="Nombre de la
     return {
         "carrera": carrera,
         "total_ofertas": len(df),
-        "habilidades_tecnicas": [
-            {"nombre": formatear_nombre(col), "frecuencia": int(tecnicas_sumadas[col])}
-            for col in tecnicas_sumadas.index
-        ],
-        "habilidades_blandas": [
-            {"nombre": formatear_nombre(col), "frecuencia": int(blandas_sumadas[col])}
-            for col in blandas_sumadas.index
-        ]
+        "habilidades_tecnicas": habilidades_tecnicas,
+        "habilidades_blandas": habilidades_blandas
     }
 
 @app.post("/subir-csv-crudo/")
@@ -358,3 +362,16 @@ def obtener_evaluacion_modelo():
             "habilidades_ruidosas": {},
             "mensaje": "Aún no se ha calculado la evaluación del modelo."
         }
+
+@app.post("/log-tiempo/")
+def registrar_tiempo(tiempo_data: dict = Body(...), db: Session = Depends(get_db)):
+    try:
+        nuevo = TiempoCarga(
+            carrera=tiempo_data.get("carrera", "Desconocida"),
+            tiempo_segundos=tiempo_data.get("tiempo_segundos", 0)
+        )
+        db.add(nuevo)
+        db.commit()
+        return {"message": "Tiempo registrado"}
+    except Exception as e:
+        return {"error": str(e)}
