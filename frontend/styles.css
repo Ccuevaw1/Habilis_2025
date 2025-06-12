@@ -218,7 +218,7 @@ canvas {
   background-color: #00b070;
 }
 
-.btn-subir .btn-verificar{
+.btn-subir{
   background-color: #3c50b2;
   color: white;
   border: none;
@@ -230,7 +230,23 @@ canvas {
   transition: background-color 0.3s ease;
 }
 
-.btn-subir:hover .btn-verificar:hover{
+.btn-subir:hover{
+  background-color: #2f3fa1;
+}
+
+.btn-verificar{
+  background-color: #3c50b2;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-verificar:hover{
   background-color: #2f3fa1;
 }
 
