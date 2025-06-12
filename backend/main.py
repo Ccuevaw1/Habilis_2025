@@ -340,13 +340,10 @@ def registrar_tiempo_carga(
     inicio: float = Query(...),  # viene del frontend como UNIX timestamp
     db: Session = Depends(get_db)
 ):
-    # Convertir inicio recibido desde frontend
-    inicio_dt = datetime.fromtimestamp(inicio, tz=timezone.utc)
-    fin_dt = datetime.now(timezone.utc)
-
-    duracion = round((fin_dt - inicio_dt).total_seconds(), 4)
-    if duracion < 0:
-        duracion = 0.001  # evitar valores negativos
+    inicio_dt = datetime.utcfromtimestamp(inicio)  # no uses timezone.utc
+    fin = time.time()
+    fin_dt = datetime.utcfromtimestamp(fin)
+    duracion = round(fin - inicio, 4)
 
     nuevo_log = TiempoCarga(
         carrera=carrera,
