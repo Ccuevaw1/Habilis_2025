@@ -5,8 +5,11 @@ from models.habilidad import Habilidad
 from fastapi.middleware.cors import CORSMiddleware
 from mineria import procesar_datos_computrabajo
 from sklearn.metrics import accuracy_score
+from models.tiempo import TiempoCarga
+Base.metadata.create_all(bind=engine)
 import pandas as pd
 import shutil
+import time
 import json
 import os
 
@@ -85,21 +88,24 @@ def estadisticas_habilidades(carrera: str = Query(..., description="Nombre de la
     tecnicas_sumadas = df[columnas_tecnicas].sum().sort_values(ascending=False)
     blandas_sumadas = df[columnas_blandas].sum().sort_values(ascending=False)
 
-    habilidades_tecnicas = [
-        {"nombre": formatear_nombre(col), "frecuencia": int(tecnicas_sumadas[col])}
-        for col in tecnicas_sumadas.index
-    ]
-
-    habilidades_blandas = [
-        {"nombre": formatear_nombre(col), "frecuencia": int(blandas_sumadas[col])}
-        for col in blandas_sumadas.index
-    ]
+    # Guardar tiempo de carga
+    fin = time.time()
+    duracion = round(fin - inicio, 4)
+    nuevo_log = TiempoCarga(carrera=carrera, tiempo_segundos=duracion)
+    db.add(nuevo_log)
+    db.commit()
 
     return {
         "carrera": carrera,
         "total_ofertas": len(df),
-        "habilidades_tecnicas": habilidades_tecnicas,
-        "habilidades_blandas": habilidades_blandas
+        "habilidades_tecnicas": [
+            {"nombre": formatear_nombre(col), "frecuencia": int(tecnicas_sumadas[col])}
+            for col in tecnicas_sumadas.index
+        ],
+        "habilidades_blandas": [
+            {"nombre": formatear_nombre(col), "frecuencia": int(blandas_sumadas[col])}
+            for col in blandas_sumadas.index
+        ]
     }
 
 @app.post("/subir-csv-crudo/")
