@@ -7,5 +7,7 @@ class TiempoCarga(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     carrera = Column(String, nullable=False)
+    inicio = Column(DateTime, nullable=False) 
+    fin = Column(DateTime, nullable=False)   
     tiempo_segundos = Column(Float, nullable=False)
     fecha = Column(DateTime, default=datetime.utcnow)

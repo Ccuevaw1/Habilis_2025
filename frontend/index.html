@@ -318,10 +318,10 @@ fileInput.addEventListener("change", () => {
     console.log("Preview después:", despues);
 
     // Validación de estructura
-    // if (!Array.isArray(antes)) {
-    //     console.error("Preview_antes no es un array:", antes);
-    //     return;
-    // }
+    if (!Array.isArray(antes)) {
+        console.error("Preview_antes no es un array:", antes);
+        return;
+    }
     if (!Array.isArray(despues)) {
         console.error("Preview_despues no es un array:", despues);
         return;
