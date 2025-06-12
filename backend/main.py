@@ -5,12 +5,8 @@ from models.habilidad import Habilidad
 from fastapi.middleware.cors import CORSMiddleware
 from mineria import procesar_datos_computrabajo
 from sklearn.metrics import accuracy_score
-from models.tiempo import TiempoCarga
-Base.metadata.create_all(bind=engine)
-from fastapi import Body
 import pandas as pd
 import shutil
-import time
 import json
 import os
 
@@ -34,28 +30,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
-# def obtener_resumen_procesamiento(df_original, df_filtrado, columnas_detectadas):
-#     columnas_eliminadas = [
-#         'Subtítulo', 'Calificación', 'URL_Empresa', 'Región',
-#         'Requerimientos', 'Contrato', 'Descripción', 'texto_skills', 'Acerca_de_Empresa'
-#     ]
-
-#     campos_rellenados = []
-#     for campo in ['company', 'salary', 'modality']:
-#         if campo in df_filtrado.columns and df_filtrado[campo].isna().sum() > 0:
-#             campos_rellenados.append(campo)
-
-#     return {
-#         "originales": len(df_original),
-#         "eliminados": len(df_original) - len(df_filtrado),
-#         "finales": len(df_filtrado),
-#         "transformaciones_salario": df_filtrado["salary"].notna().sum() if "salary" in df_filtrado else 0,
-#         "rellenos": campos_rellenados,
-#         "columnas_eliminadas": columnas_eliminadas,
-#         "caracteres_limpiados": True,
-#         "habilidades": columnas_detectadas
-#     }
 
 @app.get("/")
 def read_root():
@@ -91,19 +65,13 @@ def estadisticas_habilidades(carrera: str = Query(..., description="Nombre de la
 
     habilidades_tecnicas = [
         {"nombre": formatear_nombre(col), "frecuencia": int(tecnicas_sumadas[col])}
-        for col in tecnicas_sumadas.indexAdd commentMore actions
+        for col in tecnicas_sumadas.index
     ]
 
     habilidades_blandas = [
         {"nombre": formatear_nombre(col), "frecuencia": int(blandas_sumadas[col])}
         for col in blandas_sumadas.index
     ]
-    # Guardar tiempo de carga
-    fin = time.time()
-    duracion = round(fin - inicio, 4)
-    nuevo_log = TiempoCarga(carrera=carrera, tiempo_segundos=duracion)
-    db.add(nuevo_log)
-    db.commit()
 
     return {
         "carrera": carrera,
@@ -362,16 +330,3 @@ def obtener_evaluacion_modelo():
             "habilidades_ruidosas": {},
             "mensaje": "Aún no se ha calculado la evaluación del modelo."
         }
-
-@app.post("/log-tiempo/")
-def registrar_tiempo(tiempo_data: dict = Body(...), db: Session = Depends(get_db)):
-    try:
-        nuevo = TiempoCarga(
-            carrera=tiempo_data.get("carrera", "Desconocida"),
-            tiempo_segundos=tiempo_data.get("tiempo_segundos", 0)
-        )
-        db.add(nuevo)
-        db.commit()
-        return {"message": "Tiempo registrado"}
-    except Exception as e:
-        return {"error": str(e)}
