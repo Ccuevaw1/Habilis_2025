@@ -340,7 +340,7 @@ def registrar_tiempo_carga(
     db: Session = Depends(get_db)
 ):
     inicio_dt = datetime.utcnow()
-    time.sleep(0.01)  # Para garantizar diferencia mínima
+    #time.sleep(0.01)  # Para garantizar diferencia mínima
     fin_dt = datetime.utcnow()
 
     duracion = round((fin_dt - inicio_dt).total_seconds(), 4)
