@@ -151,7 +151,7 @@ const graficoBlandas = new Chart(document.getElementById('graficoBlandas'), {
 });
 
 selectCarrera.addEventListener('change', () => {
-  //const inicioTiempo = Date.now() / 1000; // tiempo seleccionar carrera en segundos
+  const inicioTiempo = Date.now() / 1000; // tiempo seleccionar carrera en segundos
   const carrera = selectCarrera.value;
   tituloCarrera.textContent = carrera.toUpperCase();
   fetch(`${API_URL}?carrera=${encodeURIComponent(carrera)}`)
@@ -174,7 +174,7 @@ selectCarrera.addEventListener('change', () => {
       document.querySelector('#tabla-tecnicas tbody').innerHTML = topTecnicas.map((h, i) =>
         `<tr><td>${i+1}</td><td>${h.nombre}</td><td>${h.frecuencia}</td></tr>`).join('');
       const finTiempo = Date.now() / 1000;
-      fetch(`https://habilis2025-production.up.railway.app/tiempo-carga/?carrera=${encodeURIComponent(carrera)}`, {
+      fetch(`https://habilis2025-production.up.railway.app/tiempo-carga/?carrera=${encodeURIComponent(carrera)}&inicio=${inicioTiempo}`, {
         method: "POST"
       }).then(res => res.json())
         .then(data => console.log(data.mensaje))

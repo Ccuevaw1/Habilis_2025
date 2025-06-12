@@ -7,7 +7,7 @@ from mineria import procesar_datos_computrabajo
 from sklearn.metrics import accuracy_score
 from models.tiempo import TiempoCarga
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 import pandas as pd
 import shutil
 import json
@@ -337,13 +337,16 @@ def obtener_evaluacion_modelo():
 @app.post("/tiempo-carga/")
 def registrar_tiempo_carga(
     carrera: str = Query(...),
+    inicio: float = Query(...),  # viene del frontend como UNIX timestamp
     db: Session = Depends(get_db)
 ):
-    inicio_dt = datetime.utcnow()
-    #time.sleep(0.01)  # Para garantizar diferencia mínima
-    fin_dt = datetime.utcnow()
+    # Convertir inicio recibido desde frontend
+    inicio_dt = datetime.fromtimestamp(inicio, tz=timezone.utc)
+    fin_dt = datetime.now(timezone.utc)
 
     duracion = round((fin_dt - inicio_dt).total_seconds(), 4)
+    if duracion < 0:
+        duracion = 0.001  # evitar valores negativos
 
     nuevo_log = TiempoCarga(
         carrera=carrera,
