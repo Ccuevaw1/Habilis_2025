@@ -337,15 +337,13 @@ def obtener_evaluacion_modelo():
 @app.post("/tiempo-carga/")
 def registrar_tiempo_carga(
     carrera: str = Query(...),
-    inicio: float = Query(...),  # timestamp UNIX en segundos desde frontend
     db: Session = Depends(get_db)
 ):
-    fin = time.time()
-    duracion = round(fin - inicio, 4)
+    inicio_dt = datetime.utcnow()
+    time.sleep(0.01)  # Para garantizar diferencia mínima
+    fin_dt = datetime.utcnow()
 
-    # Convertir ambos timestamps a datetime
-    inicio_dt = datetime.utcfromtimestamp(inicio)
-    fin_dt = datetime.utcfromtimestamp(fin)
+    duracion = round((fin_dt - inicio_dt).total_seconds(), 4)
 
     nuevo_log = TiempoCarga(
         carrera=carrera,

@@ -151,7 +151,7 @@ const graficoBlandas = new Chart(document.getElementById('graficoBlandas'), {
 });
 
 selectCarrera.addEventListener('change', () => {
-  const inicioTiempo = Date.now() / 1000; // tiempo seleccionar carrera en segundos
+  //const inicioTiempo = Date.now() / 1000; // tiempo seleccionar carrera en segundos
   const carrera = selectCarrera.value;
   tituloCarrera.textContent = carrera.toUpperCase();
   fetch(`${API_URL}?carrera=${encodeURIComponent(carrera)}`)
