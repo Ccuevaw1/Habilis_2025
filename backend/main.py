@@ -5,6 +5,8 @@ from models.habilidad import Habilidad
 from fastapi.middleware.cors import CORSMiddleware
 from mineria import procesar_datos_computrabajo
 from sklearn.metrics import accuracy_score
+from models.tiempo import TiempoCarga
+import time
 import pandas as pd
 import shutil
 import json
@@ -330,3 +332,14 @@ def obtener_evaluacion_modelo():
             "habilidades_ruidosas": {},
             "mensaje": "Aún no se ha calculado la evaluación del modelo."
         }
+
+@app.post("/tiempo-carga/")
+def registrar_tiempo_carga(carrera: str = Query(...), inicio: float = Query(...), db: Session = Depends(get_db)):
+    fin = time.time()
+    duracion = round(fin - inicio, 4)
+
+    nuevo_log = TiempoCarga(carrera=carrera, tiempo_segundos=duracion)
+    db.add(nuevo_log)
+    db.commit()
+
+    return {"mensaje": f"Tiempo registrado: {duracion} segundos"}
