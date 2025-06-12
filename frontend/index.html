@@ -173,15 +173,9 @@ selectCarrera.addEventListener('change', () => {
 
       document.querySelector('#tabla-tecnicas tbody').innerHTML = topTecnicas.map((h, i) =>
         `<tr><td>${i+1}</td><td>${h.nombre}</td><td>${h.frecuencia}</td></tr>`).join('');
-      const finTiempo = Date.now() / 1000;
-      fetch(`https://habilis2025-production.up.railway.app/tiempo-carga/?carrera=${encodeURIComponent(carrera)}&inicio=${inicioTiempo}`, {
-        method: "POST"
-      }).then(res => res.json())
-        .then(data => console.log(data.mensaje))
-        .catch(err => console.warn("No se pudo registrar el tiempo:", err));
     });
 
-        // Nuevo fetch para los salarios
+  // Nuevo fetch para los salarios
   fetch(`${API_SALARIOS}?carrera=${encodeURIComponent(carrera)}`)
   .then(res => res.json())
   .then(data => {
@@ -242,6 +236,13 @@ selectCarrera.addEventListener('change', () => {
         }
       }
     });
+    const finTiempo = Date.now() / 1000;
+      fetch(`https://habilis2025-production.up.railway.app/tiempo-carga/?carrera=${encodeURIComponent(carrera)}&inicio=${inicioTiempo}`, {
+        method: "POST"
+      })
+      .then(res => res.json())
+      .then(data => console.log(data.mensaje))
+      .catch(err => console.warn("No se pudo registrar el tiempo:", err));
   });
 });
 
