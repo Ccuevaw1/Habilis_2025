@@ -98,11 +98,11 @@ def procesar_datos_computrabajo(csv_path):
     # RENOMBRAR
     df.rename(columns={
         'Título': 'title',
-        'Carrera Detectada': 'career',
         'Empresa': 'company',
         'Salario': 'salary',
         'Jornada': 'workday',
         'Tipo_Asistencia': 'modality',
+        'Carrera Detectada': 'career'
     }, inplace=True)
 
     # RELLENAR NULOS
