@@ -346,15 +346,16 @@ function generarTablaHTMLCruda(data) {
     // Crear tabla
     const thead = `<thead><tr>${columnas.map(col => `<th>${col}</th>`).join('')}</tr></thead>`;
 
-    const tbody = `<tbody>${data.map(row => {
-      return `<tr>${
-        columnas.map(col => {
-          const value = row[col];
-          return `<td>${value !== null && value !== undefined ? String(value) : '-'}</td>`;
-        }).join('')
-      }</tr>`;
-    }).join('')}</tbody>`;
-
+      const tbody = `<tbody>${data.map(row => {
+        return `<tr>${
+          columnas.map(col => {
+            const value = row[col];
+            // Limitar el largo del texto para mejor visualización
+            const text = value !== null && value !== undefined ? String(value) : '-';
+            return `<td title="${text}">${text.length > 30 ? text.substring(0, 27) + '...' : text}</td>`;
+          }).join('')
+        }</tr>`;
+      }).join('')}</tbody>`;
     return `<table class="tabla-estilo">${thead}${tbody}</table>`;
   } catch (error) {
     console.error('Error generando tabla cruda:', error);
