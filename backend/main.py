@@ -265,7 +265,7 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
             preview_despues = preview_despues
         # Verificar si df_final está vacío (importante validación)
         if df_final.empty:
-            return {"message": "❌ No se generaron registros válidos tras procesar el CSV.", "error": "DataFrame vacío."}
+            return {"message": "No se generaron registros válidos tras procesar el CSV.", "error": "DataFrame vacío."}
 
         # Asegurar tipos correctos para el frontend
         resumen = {
@@ -291,7 +291,7 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
                 workday=row.get("workday"),
                 modality=row.get("modality"),
                 salary=row.get("salary"),
-                **{col: int(row[col]) if pd.notnull(row[col]) else 0 for col in columnas_detectadas}
+                **{col: int(row[col]) for col in columnas_detectadas}
             )
             db.add(habilidad)
         db.commit()

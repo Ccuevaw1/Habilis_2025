@@ -15,6 +15,7 @@ def procesar_datos_computrabajo(csv_path):
 
     # Hacer una copia para procesar
     df = df_original.copy()
+    preview_antes = df_original.head(5).to_dict(orient='records')  # Datos crudos
     # LIMPIEZA DE SALARIO
     df['Salario'] = df['Salario'].fillna('').astype(str).str.replace(r"\(.*?\)", "", regex=True).str.strip()
     df[['Salario_Simbolo', 'Salario_Valor']] = df['Salario'].str.extract(r'(\D+)?([\d.,]+)')
@@ -134,7 +135,7 @@ def procesar_datos_computrabajo(csv_path):
     }
 
     # Preparar datos para mostrar
-    preview_antes = df_original.head(5).to_dict(orient='records')  # Datos crudos
+    
     preview_despues = df_final.head(5).to_dict(orient='records')  # Datos procesados
     
     return df_final, resumen, columnas_detectadas, preview_antes, preview_despues

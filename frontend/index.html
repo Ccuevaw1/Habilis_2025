@@ -340,41 +340,17 @@ function generarTablaHTMLCruda(data) {
   }
 
   try {
-    // Tomar todas las columnas del primer registro (asumiendo estructura consistente)
+    // Obtener TODAS las columnas del primer registro
     const columnas = Object.keys(data[0]);
     
-    // Columnas que siempre queremos mostrar (ajusta según tu CSV)
-    const columnasImportantes = [
-      'Título', 'Empresa', 'Salario', 'Jornada', 'Descripción', 
-      'Requerimientos', 'Subtítulo', 'Tipo_Asistencia'
-    ].filter(col => columnas.includes(col));
-    
-    // Columnas que parecen habilidades (basado en nombre)
-    const columnasHabilidades = columnas.filter(col => 
-      col.toLowerCase().includes('habilidad') || 
-      col.toLowerCase().includes('skill') ||
-      col.startsWith('hard_') || 
-      col.startsWith('soft_')
-    );
-    
-    // Combinar columnas importantes con habilidades
-    const columnasMostrar = [...columnasImportantes, ...columnasHabilidades];
-    
-    // Eliminar posibles duplicados
-    const columnasUnicas = [...new Set(columnasMostrar)];
-
     // Crear tabla
-    const thead = `<thead><tr>${columnasUnicas.map(col => `<th>${col}</th>`).join('')}</tr></thead>`;
+    const thead = `<thead><tr>${columnas.map(col => `<th>${col}</th>`).join('')}</tr></thead>`;
 
     const tbody = `<tbody>${data.map(row => {
       return `<tr>${
-        columnasUnicas.map(col => {
+        columnas.map(col => {
           const value = row[col];
-          if (value === undefined || value === null) return '<td>-</td>';
-          // Mostrar valores booleanos como texto
-          if (value === true || value === 'true') return '<td>Sí</td>';
-          if (value === false || value === 'false') return '<td>No</td>';
-          return `<td>${String(value)}</td>`;
+          return `<td>${value !== null && value !== undefined ? String(value) : '-'}</td>`;
         }).join('')
       }</tr>`;
     }).join('')}</tbody>`;
@@ -382,9 +358,10 @@ function generarTablaHTMLCruda(data) {
     return `<table class="tabla-estilo">${thead}${tbody}</table>`;
   } catch (error) {
     console.error('Error generando tabla cruda:', error);
-    return `<p class="error">Error mostrando datos crudos: ${error.message}</p>`;
+    return `<p class="error">Error mostrando datos: ${error.message}</p>`;
   }
 }
+
 function generarTablaHTML(data) {
   if (!data || !Array.isArray(data) || data.length === 0) {
     return '<p class="error">No hay datos disponibles</p>';
