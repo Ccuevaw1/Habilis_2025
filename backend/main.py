@@ -283,7 +283,7 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
         if df_final.empty:
             return JSONResponse(
                 status_code=400,
-                content={"message": "No se generaron registros válidos", "error": "DataFrame vacío"}
+                content={"message": "No se generaron registros vlidos", "error": "DataFrame vacío"}
             )
 
         # 6. Preparar respuesta para frontend
