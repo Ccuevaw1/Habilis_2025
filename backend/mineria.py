@@ -9,9 +9,9 @@ def procesar_datos_computrabajo(csv_path):
     """
     # Leer archivo CSV
     try:
-        df = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
+        df_original = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
     except UnicodeDecodeError:
-        df = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
+        df_original = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')
 
     # Hacer una copia para procesar
     df = df_original.copy()
@@ -121,12 +121,7 @@ def procesar_datos_computrabajo(csv_path):
     # Guardar para estadísticas
     df_final = df[columnas_finales].copy()
     columnas_detectadas = [col for col in df.columns if col.startswith("hard_") or col.startswith("soft_")]
-
-    try:
-        df_original = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')
-    except UnicodeDecodeError:
-        df_original = pd.read_csv(csv_path, sep=';', encoding='latin1', on_bad_lines='skip')    
-
+    
     resumen = {
         "originales": len(df_original),
         "eliminados": len(df_original) - len(df),

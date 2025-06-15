@@ -244,113 +244,81 @@ def estadisticas_salarios(carrera: str = Query(..., description="Nombre de la ca
 @app.post("/proceso-csv")
 async def proceso_csv_crudo(file: UploadFile = File(...)):
     try:
-        # 1. Validación inicial del archivo
-        if not file.filename.endswith('.csv'):
-            raise ValueError("El archivo debe ser un CSV")
-
-        # 2. Guardar el archivo temporalmente
+        # Guardar el archivo temporalmente
         os.makedirs("data", exist_ok=True)
-        temp_path = f"data/temp_{int(time.time())}.csv"
-        
-        try:
-            # Usar async para escritura más eficiente
-            with open(temp_path, "wb") as buffer:
-                content = await file.read()
-                buffer.write(content)
-        except Exception as e:
-            raise IOError(f"No se pudo guardar el archivo temporal: {str(e)}")
+        path_csv = "data/upload.csv"
+        with open(path_csv, "wb") as f:
+            shutil.copyfileobj(file.file, f)
 
-        # 3. Leer CSV con manejo robusto
+        # Leer CSV original con manejo robusto de encoding
         try:
-            df_original = pd.read_csv(temp_path, encoding="utf-8", sep=";", on_bad_lines='warn')
+            df_original = pd.read_csv(path_csv, encoding="utf-8", sep=";", on_bad_lines='skip')
         except UnicodeDecodeError:
-            try:
-                df_original = pd.read_csv(temp_path, encoding="latin1", sep=";", on_bad_lines='warn')
-            except Exception as e:
-                raise ValueError(f"No se pudo leer el archivo CSV: {str(e)}")
+            df_original = pd.read_csv(path_csv, encoding="latin1", sep=";", on_bad_lines='skip')
 
-        # Validación básica del DataFrame
-        if df_original.empty:
-            raise ValueError("El archivo CSV está vacío o no tiene formato válido")
+        # Procesar archivo CSV (mineria.py)
+        df_final, resumen, columnas_detectadas, preview_antes, preview_despues = procesar_datos_computrabajo(path_csv)
 
-        # 4. Procesamiento de datos
-        try:
-            df_final, resumen, columnas_detectadas, preview_antes, preview_despues = procesar_datos_computrabajo(temp_path)
-        except Exception as e:
-            raise ValueError(f"Error en procesamiento de datos: {str(e)}")
+       # Asegurar que ambos previews sean listas válidas (ya vienen como dicts)
+        if not isinstance(preview_antes, list):
+            preview_antes = []
+        else:
+            preview_antes = preview_antes
 
-        # 5. Validación de resultados del procesamiento
+        if not isinstance(preview_despues, list):
+            preview_despues = []
+        else:
+            preview_despues = preview_despues
+        # Verificar si df_final está vacío (importante validación)
         if df_final.empty:
-            return JSONResponse(
-                status_code=400,
-                content={"message": "No se generaron registros vlidos", "error": "DataFrame vacío"}
-            )
+            return {"message": "❌ No se generaron registros válidos tras procesar el CSV.", "error": "DataFrame vacío."}
 
-        # 6. Preparar respuesta para frontend
-        response_data = {
-            "message": f"{len(df_final)} registros procesados exitosamente",
-            "resumen": {
-                "originales": int(resumen.get("originales", 0)),
-                "eliminados": int(resumen.get("eliminados", 0)),
-                "finales": int(resumen.get("finales", 0)),
-                "transformaciones_salario": int(resumen.get("transformaciones_salario", 0)),
-                "rellenos": resumen.get("rellenos", []),
-                "columnas_eliminadas": resumen.get("columnas_eliminadas", []),
-                "caracteres_limpiados": bool(resumen.get("caracteres_limpiados", False)),
-                "habilidades": resumen.get("habilidades", [])
-            },
-            "preview_antes": preview_antes if isinstance(preview_antes, list) else [],
-            "preview_despues": preview_despues if isinstance(preview_despues, list) else []
+        # Asegurar tipos correctos para el frontend
+        resumen = {
+            "originales": int(resumen["originales"]),
+            "eliminados": int(resumen["eliminados"]),
+            "finales": int(resumen["finales"]),
+            "transformaciones_salario": int(resumen["transformaciones_salario"]),
+            "rellenos": resumen["rellenos"],
+            "columnas_eliminadas": resumen["columnas_eliminadas"],
+            "caracteres_limpiados": resumen["caracteres_limpiados"],
+            "habilidades": resumen["habilidades"]
         }
 
-        # 7. Guardar en base de datos (con manejo de transacciones)
+        # Insertar datos procesados en BD
         db = SessionLocal()
-        try:
-            # Limpiar datos anteriores
-            db.query(Habilidad).delete()
-            
-            # Insertar nuevos registros
-            for _, row in df_final.iterrows():
-                db.add(Habilidad(
-                    career=row.get("career"),
-                    title=row.get("title"),
-                    company=row.get("company"),
-                    workday=row.get("workday"),
-                    modality=row.get("modality"),
-                    salary=row.get("salary"),
-                    **{col: int(row[col]) for col in columnas_detectadas if col in row}
-                ))
-            db.commit()
-        except Exception as e:
-            db.rollback()
-            raise ValueError(f"Error al guardar en base de datos: {str(e)}")
-        finally:
-            db.close()
+        db.query(Habilidad).delete()
+        db.commit()
+        for _, row in df_final.iterrows():
+            habilidad = Habilidad(
+                career=row.get("career"),
+                title=row.get("title"),
+                company=row.get("company"),
+                workday=row.get("workday"),
+                modality=row.get("modality"),
+                salary=row.get("salary"),
+                **{col: int(row[col]) for col in columnas_detectadas}
+            )
+            db.add(habilidad)
+        db.commit()
+        db.close()
 
-        # 8. Limpieza del archivo temporal
-        try:
-            os.remove(temp_path)
-        except:
-            pass
+        return {
+            "message": f"{len(df_final)} registros procesados y guardados exitosamente.",
+            "resumen": resumen,
+            "preview_antes": preview_antes,
+            "preview_despues": preview_despues
+        }
 
-        return response_data
-
-    except ValueError as ve:
-        return JSONResponse(
-            status_code=400,
-            content={"message": f"Error de validación: {str(ve)}", "error": "Bad Request"}
-        )
     except Exception as e:
         import traceback
-        traceback.print_exc()
-        return JSONResponse(
-            status_code=500,
-            content={
-                "message": "Error interno al procesar el archivo",
-                "error": str(e),
-                "detalle": traceback.format_exc()
-            }
-        )
+        error_trace = traceback.format_exc()
+        print("❌ ERROR DETALLADO:", error_trace)
+        return {
+            "message": "❌ Error al procesar el archivo.",
+            "error": str(e),
+            "detalle": error_trace  # Opcional para debug
+        }
 
 @app.get("/evaluacion-modelo/")
 def obtener_evaluacion_modelo():
