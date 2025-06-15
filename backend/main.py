@@ -250,12 +250,6 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
         with open(path_csv, "wb") as f:
             shutil.copyfileobj(file.file, f)
 
-        # Leer CSV original con manejo robusto de encoding
-        try:
-            df_original = pd.read_csv(path_csv, encoding="utf-8", sep=";", on_bad_lines='skip')
-        except UnicodeDecodeError:
-            df_original = pd.read_csv(path_csv, encoding="latin1", sep=";", on_bad_lines='skip')
-
         # Procesar archivo CSV (mineria.py)
         df_final, resumen, columnas_detectadas, preview_antes, preview_despues = procesar_datos_computrabajo(path_csv)
 
@@ -297,7 +291,7 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
                 workday=row.get("workday"),
                 modality=row.get("modality"),
                 salary=row.get("salary"),
-                **{col: int(row[col]) for col in columnas_detectadas}
+                **{col: int(row[col]) if pd.notnull(row[col]) else 0 for col in columnas_detectadas}
             )
             db.add(habilidad)
         db.commit()
