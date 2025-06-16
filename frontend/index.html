@@ -114,7 +114,7 @@
             <table class="tabla-estilo tabla-crudos" id="tabla-antes"></table>
           </div>
         </div>
-        
+       
         <!-- Tabla procesada -->
         <div class="tabla-seccion">
           <h4>Datos Procesados</h4>
@@ -371,40 +371,45 @@ function generarTablaHTMLCruda(data) {
 
 function generarTablaHTML(data) {
   if (!data || !Array.isArray(data) || data.length === 0) {
-    return '<p class="error">No hay datos disponibles</p>';
+    return '<tr><td colspan="100" class="no-data">No hay datos procesados disponibles</td></tr>';
   }
 
   try {
-    // Separar columnas comunes y habilidades
-    const allKeys = [...new Set(data.flatMap(row => Object.keys(row)))];
-
+    // 1. Obtener todas las columnas base (siempre visibles)
     const columnasBase = ["career", "title", "company", "workday", "modality", "salary"];
-    const columnasHabilidades = allKeys.filter(col => col.startsWith("hard_") || col.startsWith("soft_"));
+    
+    // 2. Filtrar columnas de habilidades que tienen al menos un TRUE
+    const columnasHabilidades = Object.keys(data[0])
+      .filter(col => (col.startsWith("hard_") || col.startsWith("soft_")) && 
+             data.some(row => row[col] === true || row[col] === "true"));
+    
+    // 3. Combinar columnas base con habilidades relevantes
+    const columnasFinales = [...columnasBase, ...columnasHabilidades];
+    
+    // 4. Construir la tabla
+    let html = '<thead><tr>';
+    html += columnasFinales.map(col => `<th>${escapeHtml(col)}</th>`).join('');
+    html += '</tr></thead><tbody>';
 
-    // Filtrar columnas de habilidades con al menos un 'true'
-    const columnasHabilidadesActivas = columnasHabilidades.filter(col =>
-      data.some(row => row[col] === true || row[col] === "true")
-    );
+    html += data.map(row => {
+      return '<tr>' + columnasFinales.map(col => {
+        const value = row[col];
+        
+        // Mostrar solo valores TRUE en habilidades (mostrar vacío para FALSE)
+        if (col.startsWith("hard_") || col.startsWith("soft_")) {
+          return (value === true || value === "true") ? '<td>✓</td>' : '<td></td>';
+        }
+        
+        // Para otras columnas, mostrar el valor normalmente
+        if (value === undefined || value === null) return '<td>-</td>';
+        return `<td>${escapeHtml(String(value))}</td>`;
+      }).join('') + '</tr>';
+    }).join('');
 
-    const columnasFinales = [...columnasBase, ...columnasHabilidadesActivas];
-
-    // Crear tabla
-    const thead = `<thead><tr>${columnasFinales.map(col => `<th>${col}</th>`).join('')}</tr></thead>`;
-
-    const tbody = `<tbody>${data.map(row => {
-      return `<tr>${
-        columnasFinales.map(col => {
-          const value = row[col];
-          if (value === undefined || value === null) return '<td>-</td>';
-          return `<td>${String(value)}</td>`;
-        }).join('')
-      }</tr>`;
-    }).join('')}</tbody>`;
-
-    return `<table class="tabla-estilo">${thead}${tbody}</table>`;
+    return html + '</tbody>';
   } catch (error) {
     console.error('Error generando tabla:', error);
-    return `<p class="error">Error mostrando datos: ${error.message}</p>`;
+    return `<tr><td colspan="100" class="error">Error mostrando datos: ${error.message}</td></tr>`;
   }
 } 
 
