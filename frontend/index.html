@@ -303,9 +303,6 @@ fileInput.addEventListener("change", () => {
   })
   .then(res => res.json())
   .then(data => {
-    // Mostrar mensaje de éxito
-    const successMessage = `Archivo CSV cargado correctamente!`;
-    alert(successMessage);
     const resumen = data.resumen;
     document.getElementById("prep-total").textContent = resumen.originales;
     document.getElementById("prep-eliminados").textContent = resumen.eliminados;
@@ -332,6 +329,7 @@ fileInput.addEventListener("change", () => {
     } else {
         const tablaDespues = document.getElementById("tabla-despues");
         tablaDespues.innerHTML = generarTablaHTML(despues);  // Función existente para datos procesados
+        alert("Archivo CSV cargado correctamente!");
     }
   })
   .catch(() => alert("Error al subir el archivo, no cumple con la estructura proporcionada por Octoparse."));
