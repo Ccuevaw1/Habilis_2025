@@ -135,6 +135,6 @@ def procesar_datos_computrabajo(csv_path):
 
     # Preparar datos para mostrar
     preview_antes = df_original.head(5).fillna('').astype(str).to_dict(orient='records')
-    preview_despues = df_final.head(5).fillna('').astype(str).to_dict(orient='records')
+    preview_despues = df_final.head(5).to_dict(orient='records')
     
     return df_final, resumen, columnas_detectadas, preview_antes, preview_despues
