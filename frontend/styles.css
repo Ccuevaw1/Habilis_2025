@@ -258,3 +258,9 @@ canvas {
   margin-bottom: 0.4rem;
   font-size: 0.95rem;
 }
+
+.tabla-scroll-horizontal {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
