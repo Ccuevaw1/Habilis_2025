@@ -264,3 +264,7 @@ canvas {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
+
+.tabla-forzada-ancha {
+  min-width: 1000px;
+}
