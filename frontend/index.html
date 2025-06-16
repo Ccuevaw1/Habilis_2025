@@ -387,7 +387,7 @@ function generarTablaHTML(data) {
   }
 
   try {
-    // 1. Configuración inicial
+    // 1. Columnas base que siempre mostramos
     const columnasBase = ["career", "title", "company", "workday", "modality", "salary"];
     
     // 2. Función para formatear nombres de columnas
@@ -398,19 +398,30 @@ function generarTablaHTML(data) {
                .replace(/\b\w/g, l => l.toUpperCase()); // Capitaliza
     };
 
-    // 3. Encontrar habilidades activas (optimizado)
+    // 3. Función para truncar texto con tooltip
+    const truncarTexto = (text, maxLength = 30) => {
+      const str = text !== null && text !== undefined ? String(text) : '-';
+      return {
+        display: str.length > maxLength ? str.substring(0, maxLength-3) + '...' : str,
+        full: str
+      };
+    };
+
+    // 4. Encontrar columnas de habilidades con al menos un 1 (TRUE)
     const columnasHabilidadesActivas = Object.keys(data[0])
       .filter(col => (col.startsWith("hard_") || col.startsWith("soft_")) && 
              data.some(row => {
                const val = row[col];
-               return val === true || val === "true" || val === "TRUE";
+               return val === 1 || val === true || val === "true" || val === "TRUE";
              }));
 
-    // 4. Generar estructura de la tabla
-    let html = '<table class="tabla-estilo"><thead><tr>';
+    // 5. Generar estructura de la tabla
+    let html = '<table class="tabla-estilo tabla-procesada"><thead><tr>';
     
-    // Encabezados
+    // Encabezados para columnas base
     html += columnasBase.map(col => `<th>${formatearNombreColumna(col)}</th>`).join('');
+    
+    // Encabezados para habilidades activas
     html += columnasHabilidadesActivas.map(col => `<th>${formatearNombreColumna(col)}</th>`).join('');
     html += '</tr></thead><tbody>';
 
@@ -418,17 +429,17 @@ function generarTablaHTML(data) {
     html += data.map(row => {
       let fila = '<tr>';
       
-      // Columnas base
+      // Columnas base con texto truncado
       fila += columnasBase.map(col => {
-        const value = row[col] ?? '-';
-        return `<td>${escapeHtml(String(value))}</td>`;
+        const {display, full} = truncarTexto(row[col]);
+        return `<td title="${escapeHtml(full)}">${escapeHtml(display)}</td>`;
       }).join('');
       
-      // Columnas de habilidades
+      // Columnas de habilidades (mostrar 1 o 0)
       fila += columnasHabilidadesActivas.map(col => {
         const val = row[col];
-        const isActive = val === true || val === "true" || val === "TRUE";
-        return isActive ? '<td class="habilidad-activa">✓</td>' : '<td></td>';
+        const isActive = val === 1 || val === true || val === "true" || val === "TRUE";
+        return `<td class="centrado">${isActive ? '1' : '0'}</td>`;
       }).join('');
       
       return fila + '</tr>';
