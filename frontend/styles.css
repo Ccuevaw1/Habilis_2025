@@ -388,3 +388,44 @@ canvas {
 .tabla-scroll-container.scrolling:after {
   opacity: 1;
 }
+
+/* Estilos para la tabla numérica */
+.tabla-procesada {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+
+.tabla-procesada th, 
+.tabla-procesada td {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+  max-width: 200px;
+  overflow: hidden;
+}
+
+.tabla-procesada th {
+  background-color: #f2f2f2;
+  position: sticky;
+  top: 0;
+  font-weight: bold;
+}
+
+.centrado {
+  text-align: center;
+  font-family: monospace;
+  font-weight: bold;
+}
+
+/* Resaltar los 1s */
+.tabla-procesada td.centrado:contains("1") {
+  color: #28a745;
+  background-color: #f0fff0;
+}
+
+/* Tooltips para texto largo */
+.tabla-procesada td[title] {
+  cursor: help;
+  white-space: nowrap;
+}
