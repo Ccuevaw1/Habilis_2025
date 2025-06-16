@@ -383,46 +383,73 @@ function generarTablaHTMLCruda(data) {
 
 function generarTablaHTML(data) {
   if (!data || !Array.isArray(data) || data.length === 0) {
-    return '<tr><td colspan="100" class="no-data">No hay datos procesados disponibles</td></tr>';
+    return '<p class="error">No hay datos disponibles</p>';
   }
 
   try {
-    // 1. Obtener todas las columnas base (siempre visibles)
+    // 1. Configuración inicial
     const columnasBase = ["career", "title", "company", "workday", "modality", "salary"];
     
-    // 2. Filtrar columnas de habilidades que tienen al menos un TRUE
-    const columnasHabilidades = Object.keys(data[0])
+    // 2. Función para formatear nombres de columnas
+    const formatearNombreColumna = (col) => {
+      if (columnasBase.includes(col)) return col;
+      return col.replace(/^(hard|soft)_/, '')  // Quita prefijo
+               .replace(/_/g, ' ')            // Reemplaza guiones bajos
+               .replace(/\b\w/g, l => l.toUpperCase()); // Capitaliza
+    };
+
+    // 3. Encontrar habilidades activas (optimizado)
+    const columnasHabilidadesActivas = Object.keys(data[0])
       .filter(col => (col.startsWith("hard_") || col.startsWith("soft_")) && 
-             data.some(row => row[col] === true || row[col] === "true"));
+             data.some(row => {
+               const val = row[col];
+               return val === true || val === "true" || val === "TRUE";
+             }));
+
+    // 4. Generar estructura de la tabla
+    let html = '<table class="tabla-estilo"><thead><tr>';
     
-    // 3. Combinar columnas base con habilidades relevantes
-    const columnasFinales = [...columnasBase, ...columnasHabilidades];
-    
-    // 4. Construir la tabla
-    let html = '<thead><tr>';
-    html += columnasFinales.map(col => `<th>${escapeHtml(col)}</th>`).join('');
+    // Encabezados
+    html += columnasBase.map(col => `<th>${formatearNombreColumna(col)}</th>`).join('');
+    html += columnasHabilidadesActivas.map(col => `<th>${formatearNombreColumna(col)}</th>`).join('');
     html += '</tr></thead><tbody>';
 
+    // Filas de datos
     html += data.map(row => {
-      return '<tr>' + columnasFinales.map(col => {
-        const value = row[col];
-        
-        // Mostrar solo valores TRUE en habilidades (mostrar vacío para FALSE)
-        if (col.startsWith("hard_") || col.startsWith("soft_")) {
-          return (value === true || value === "true") ? '<td>✓</td>' : '<td></td>';
-        }
-        
-        // Para otras columnas, mostrar el valor normalmente
-        if (value === undefined || value === null) return '<td>-</td>';
+      let fila = '<tr>';
+      
+      // Columnas base
+      fila += columnasBase.map(col => {
+        const value = row[col] ?? '-';
         return `<td>${escapeHtml(String(value))}</td>`;
-      }).join('') + '</tr>';
+      }).join('');
+      
+      // Columnas de habilidades
+      fila += columnasHabilidadesActivas.map(col => {
+        const val = row[col];
+        const isActive = val === true || val === "true" || val === "TRUE";
+        return isActive ? '<td class="habilidad-activa">✓</td>' : '<td></td>';
+      }).join('');
+      
+      return fila + '</tr>';
     }).join('');
 
-    return html + '</tbody>';
+    return html + '</tbody></table>';
   } catch (error) {
     console.error('Error generando tabla:', error);
-    return `<tr><td colspan="100" class="error">Error mostrando datos: ${escapeHtml(error.message)}</td></tr>`;
+    return `<p class="error">Error mostrando datos: ${escapeHtml(error.message)}</p>`;
   }
+}
+
+// Función de escape HTML (añadir si no existe)
+function escapeHtml(text) {
+  if (text === null || text === undefined) return '';
+  return text.toString()
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 } 
 
 const inputManual = document.getElementById("inputManualCsv");
