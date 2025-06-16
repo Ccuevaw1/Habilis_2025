@@ -340,6 +340,18 @@ fileInput.addEventListener("change", () => {
   .catch(() => alert("Error al subir el archivo, no cumple con la estructura proporcionada por Octoparse."));
 });
 
+function escapeHtml(text) {
+  if (text === null || text === undefined) {
+    return '';
+  }
+  return text.toString()
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 function generarTablaHTMLCruda(data) {
   if (!data || !Array.isArray(data) || data.length === 0) {
     return '<p class="error">No hay datos crudos disponibles</p>';
@@ -409,7 +421,7 @@ function generarTablaHTML(data) {
     return html + '</tbody>';
   } catch (error) {
     console.error('Error generando tabla:', error);
-    return `<tr><td colspan="100" class="error">Error mostrando datos: ${error.message}</td></tr>`;
+    return `<tr><td colspan="100" class="error">Error mostrando datos: ${escapeHtml(error.message)}</td></tr>`;
   }
 } 
 
