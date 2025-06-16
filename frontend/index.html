@@ -106,20 +106,20 @@
 
     <div class="grafico-card" id="preview-modelado-container" style="grid-column: 1 / span 2; grid-row: 5;">
       <h3>MODELADO</h3>
-      <div style="display: flex; gap: 1rem;">
-        <div style="flex: 1;">
+      <div class="tablas-contenedor">
+        <!-- Tabla sin procesar -->
+        <div class="tabla-seccion">
           <h4>Datos de CSV sin procesar</h4>
-          <div class="tabla-scroll-horizontal">
-            <div style="min-width: 1000px;">
-              <table class="tabla-estilo tabla-forzada-ancha" id="tabla-antes"></table>
-            </div>
+          <div class="tabla-scroll-container">
+            <table class="tabla-estilo tabla-crudos" id="tabla-antes"></table>
           </div>
         </div>
-
-        <div style="flex: 1;">
-          <h4>(Datos Procesados)</h4>
-          <div style="min-width: 900px;">
-            <table class="tabla-estilo" id="tabla-despues"></table>
+        
+        <!-- Tabla procesada -->
+        <div class="tabla-seccion">
+          <h4>Datos Procesados</h4>
+          <div class="tabla-scroll-container">
+            <table class="tabla-estilo tabla-procesados" id="tabla-despues"></table>
           </div>
         </div>
       </div>
