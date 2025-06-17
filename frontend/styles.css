@@ -389,43 +389,46 @@ canvas {
   opacity: 1;
 }
 
-/* Estilos para la tabla numérica */
-.tabla-procesada {
+/* Añadir esto a tu archivo styles.css */
+.tabla-procesados {
   width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9em;
+  border-collapse: separate;
+  border-spacing: 0 8px; /* Espacio entre filas */
+  margin: 12px 0;
 }
 
-.tabla-procesada th, 
-.tabla-procesada td {
-  padding: 8px 12px;
-  border: 1px solid #ddd;
+.tabla-procesados th {
+  background-color: #f8f9fa;
+  padding: 12px 8px;
   text-align: left;
-  max-width: 200px;
-  overflow: hidden;
+  font-weight: 600;
+  border-bottom: 2px solid #dee2e6;
+  white-space: nowrap; /* Evita saltos de línea */
 }
 
-.tabla-procesada th {
-  background-color: #f2f2f2;
-  position: sticky;
-  top: 0;
+.tabla-procesados td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #e9ecef;
+  vertical-align: top;
+}
+
+.tabla-procesados tr:hover td {
+  background-color: #f1f3f5;
+}
+
+/* Estilo para celdas con habilidades activas (1/TRUE) */
+.tabla-procesados td.habilidad-activa {
+  background-color: #e6f7ff;
+  color: #0056b3;
   font-weight: bold;
-}
-
-.centrado {
   text-align: center;
-  font-family: monospace;
-  font-weight: bold;
 }
 
-/* Resaltar los 1s */
-.tabla-procesada td.centrado:contains("1") {
-  color: #28a745;
-  background-color: #f0fff0;
-}
-
-/* Tooltips para texto largo */
-.tabla-procesada td[title] {
-  cursor: help;
-  white-space: nowrap;
+/* Contenedor con scroll horizontal */
+.tabla-scroll-container {
+  overflow-x: auto;
+  max-width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 20px;
 }
