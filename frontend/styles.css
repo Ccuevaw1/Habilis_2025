@@ -259,41 +259,12 @@ canvas {
   font-size: 0.95rem;
 }
 
-/* Estilos para el contenedor principal */
-.tablas-contenedor {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.tabla-seccion {
-  width: 100%;
-}
-
-.tabla-seccion h4 {
-  margin-bottom: 0.8rem;
-  color: #555;
-  font-size: 1.1rem;
-  padding-left: 0.2rem;
-}
-
-/* Contenedor de scroll para ambas tablas */
-.tabla-scroll-container {
-  width: 100%;
-  overflow-x: auto;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  margin-bottom: 0.5rem;
-  max-height: 400px;
-  position: relative;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-/* Estilos comunes para ambas tablas */
+/* Estilos COMUNES para ambas tablas */
 .tabla-estilo {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
+  min-width: 100%; /* Mover aquí esta propiedad */
 }
 
 .tabla-estilo th {
@@ -303,13 +274,16 @@ canvas {
   z-index: 10;
   font-weight: 600;
   color: #4a5568;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  text-align: left;
 }
 
-.tabla-estilo th, 
 .tabla-estilo td {
   padding: 0.75rem 1rem;
   border: 1px solid #e2e8f0;
   text-align: left;
+  vertical-align: top;
 }
 
 .tabla-estilo tr:nth-child(even) {
@@ -320,11 +294,7 @@ canvas {
   background-color: #f0f4f8;
 }
 
-/* Estilos específicos para tabla cruda */
-.tabla-crudos {
-  min-width: 100%;
-}
-
+/* Estilos ESPECÍFICOS para tabla cruda */
 .tabla-crudos td {
   max-width: 300px;
   overflow: hidden;
@@ -342,16 +312,31 @@ canvas {
   box-shadow: 0 0 8px rgba(0,0,0,0.1);
 }
 
-/* Estilos específicos para tabla procesada */
-.tabla-procesados {
-  min-width: 100%;
+/* Estilos ESPECÍFICOS para tabla procesada */
+.tabla-procesados td.habilidad-activa {
+  background-color: #e6f7ff;
+  color: #0056b3;
+  font-weight: bold;
+  text-align: center;
 }
 
-.tabla-procesados td {
-  word-break: break-word;
+.tabla-procesados td:not(.habilidad-activa) {
+  color: #718096;
 }
 
-/* Barra de scroll personalizada */
+/* Contenedor de scroll (compartido) */
+.tabla-scroll-container {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  max-height: 400px;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Barra de scroll personalizada (compartida) */
 .tabla-scroll-container::-webkit-scrollbar {
   height: 8px;
   width: 8px;
@@ -371,7 +356,7 @@ canvas {
   background: #a8a8a8;
 }
 
-/* Indicador de que hay más contenido */
+/* Indicador de scroll (compartido) */
 .tabla-scroll-container:after {
   content: "";
   position: absolute;
@@ -387,48 +372,4 @@ canvas {
 
 .tabla-scroll-container.scrolling:after {
   opacity: 1;
-}
-
-/* Añadir esto a tu archivo styles.css */
-.tabla-procesados {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 8px; /* Espacio entre filas */
-  margin: 12px 0;
-}
-
-.tabla-procesados th {
-  background-color: #f8f9fa;
-  padding: 12px 8px;
-  text-align: left;
-  font-weight: 600;
-  border-bottom: 2px solid #dee2e6;
-  white-space: nowrap; /* Evita saltos de línea */
-}
-
-.tabla-procesados td {
-  padding: 10px 8px;
-  border-bottom: 1px solid #e9ecef;
-  vertical-align: top;
-}
-
-.tabla-procesados tr:hover td {
-  background-color: #f1f3f5;
-}
-
-/* Estilo para celdas con habilidades activas (1/TRUE) */
-.tabla-procesados td.habilidad-activa {
-  background-color: #e6f7ff;
-  color: #0056b3;
-  font-weight: bold;
-  text-align: center;
-}
-
-/* Contenedor con scroll horizontal */
-.tabla-scroll-container {
-  overflow-x: auto;
-  max-width: 100%;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  margin-bottom: 20px;
 }
