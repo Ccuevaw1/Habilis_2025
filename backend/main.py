@@ -1,13 +1,11 @@
-from fastapi import FastAPI, Depends, Query, UploadFile, File, APIRouter
+from fastapi import FastAPI, Depends, Query, UploadFile, File
 from sqlalchemy.orm import Session
 from database import SessionLocal,Base,engine
 from models.habilidad import Habilidad
 from fastapi.middleware.cors import CORSMiddleware
 from mineria import procesar_datos_computrabajo, HabilidadesExtractor
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import cross_validate
-from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics import precision_score, recall_score, f1_score
 from models.tiempo import TiempoCarga
 from datetime import datetime, timezone
 import pandas as pd
@@ -126,53 +124,42 @@ async def subir_csv_crudo(file: UploadFile = File(...)):
 
 @app.get("/evaluacion-cruzada/")
 def evaluacion_cruzada(db: Session = Depends(get_db)):
-    # Obtener datos
+    # Cargar datos
     registros = db.query(Habilidad).all()
     df = pd.DataFrame([r.__dict__ for r in registros])
 
     if len(df) < 10:
-        return {"error": "Se necesitan al menos 10 registros para evaluación cruzada"}
+        return {"error": "Se necesitan al menos 10 registros para evaluación"}
 
-    # Preparar texto de entrada
+    # Preparar texto
     X = df[['title', 'company', 'workday', 'modality', 'salary']].fillna('')
     X['texto_skills'] = X.apply(lambda row: ' '.join(str(v) for v in row.values), axis=1)
 
-    # Salidas reales
-    y = df[[col for col in df.columns if col.startswith('hard_') or col.startswith('soft_')]]
+    # Salida esperada
+    y_true = df[[col for col in df.columns if col.startswith('hard_') or col.startswith('soft_')]].astype(int)
 
-    # Pipeline para minería
-    pipeline = Pipeline([
-        ('vectorizer', CountVectorizer()),
-        ('extractor', HabilidadesExtractor())
-    ])
+    # Predicción por minería
+    vectorizer = CountVectorizer()
+    X_vect = vectorizer.fit_transform(X['texto_skills'])
+    extractor = HabilidadesExtractor()
+    y_pred = extractor.transform(X)
 
-    # Métricas
-    scoring = {
-        'precision': 'precision_micro',
-        'recall': 'recall_micro',
-        'f1': 'f1_micro'
-    }
+    # Calcular métricas reales
+    precision = precision_score(y_true.values.flatten(), y_pred.values.flatten(), zero_division=0)
+    recall = recall_score(y_true.values.flatten(), y_pred.values.flatten(), zero_division=0)
+    f1 = f1_score(y_true.values.flatten(), y_pred.values.flatten(), zero_division=0)
 
-    # Evaluación cruzada
-    scores = cross_validate(pipeline, X['texto_skills'], y, cv=5, scoring=scoring)
-
-    # Obtener errores promedio por habilidad (solo para mostrar las más difíciles de predecir)
-    # Usamos un solo fit + transform para tener algo representativo, sin errores.
-    pipeline.fit(X['texto_skills'], y)
-    y_pred = pipeline.transform(X['texto_skills'])
-
+    # Habilidades más ruidosas
     errores = {}
-    for i, col in enumerate(y.columns):
-        pred_col = y_pred.iloc[:, i] if isinstance(y_pred, pd.DataFrame) else y_pred[:, i]
-        error = (y[col].values != pred_col).mean()
-        errores[col] = round(float(error), 4)
-
+    for i, col in enumerate(y_true.columns):
+        error = (y_true[col].values != y_pred.iloc[:, i].values).mean()
+        errores[col] = round(error, 4)
     habilidades_ruidosas = sorted(errores.items(), key=lambda x: x[1], reverse=True)[:5]
 
     return {
-        "precision_promedio": round(float(scores['test_precision'].mean()), 4),
-        "recall_promedio": round(float(scores['test_recall'].mean()), 4),
-        "f1_promedio": round(float(scores['test_f1'].mean()), 4),
+        "precision_promedio": round(precision, 4),
+        "recall_promedio": round(recall, 4),
+        "f1_promedio": round(f1, 4),
         "habilidades_ruidosas": habilidades_ruidosas
     }
 
@@ -287,20 +274,6 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
             "message": "❌ Error al procesar el archivo.",
             "error": str(e),
             "detalle": error_trace  # Opcional para debug
-        }
-
-@app.get("/evaluacion-modelo/")
-def obtener_evaluacion_modelo():
-    try:
-        with open("data/evaluacion_modelo.json", "r") as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return {
-            "precision": None,
-            "recall": None,
-            "cobertura_media": None,
-            "habilidades_ruidosas": {},
-            "mensaje": "Aún no se ha calculado la evaluación del modelo."
         }
 
 @app.post("/tiempo-carga/")
