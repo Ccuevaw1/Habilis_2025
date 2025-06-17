@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, Query, UploadFile, File, APIRouter
 from sqlalchemy.orm import Session
-from database import SessionLocal,Base,engine,get_db
+from database import SessionLocal,Base,engine
 from models.habilidad import Habilidad
 from fastapi.middleware.cors import CORSMiddleware
 from mineria import procesar_datos_computrabajo, HabilidadesExtractor
