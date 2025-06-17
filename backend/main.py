@@ -124,42 +124,37 @@ async def subir_csv_crudo(file: UploadFile = File(...)):
 
 @app.get("/evaluacion-cruzada/")
 def evaluacion_cruzada(db: Session = Depends(get_db)):
-    # Cargar datos
     registros = db.query(Habilidad).all()
     df = pd.DataFrame([r.__dict__ for r in registros])
-
+    
     if len(df) < 10:
-        return {"error": "Se necesitan al menos 10 registros para evaluación"}
-
+        return {"error": "Se necesitan al menos 10 registros para evaluación cruzada"}
+    
     # Preparar texto
     X = df[['title', 'company', 'workday', 'modality', 'salary']].fillna('')
     X['texto_skills'] = X.apply(lambda row: ' '.join(str(v) for v in row.values), axis=1)
 
-    # Salida esperada
-    y_true = df[[col for col in df.columns if col.startswith('hard_') or col.startswith('soft_')]].astype(int)
-
-    # Predicción por minería
-    vectorizer = CountVectorizer()
-    X_vect = vectorizer.fit_transform(X['texto_skills'])
+    y_true = df[[col for col in df.columns if col.startswith('hard_') or col.startswith('soft_')]]
+    
+    # Aplicar el extractor
     extractor = HabilidadesExtractor()
     y_pred = extractor.transform(X)
 
-    # Calcular métricas reales
-    precision = precision_score(y_true.values.flatten(), y_pred.values.flatten(), zero_division=0)
-    recall = recall_score(y_true.values.flatten(), y_pred.values.flatten(), zero_division=0)
-    f1 = f1_score(y_true.values.flatten(), y_pred.values.flatten(), zero_division=0)
+    # Calcular métricas
+    precision = precision_score(y_true, y_pred, average='micro', zero_division=0)
+    recall = recall_score(y_true, y_pred, average='micro', zero_division=0)
+    f1 = f1_score(y_true, y_pred, average='micro', zero_division=0)
 
-    # Habilidades más ruidosas
+    # Calcular habilidades ruidosas
     errores = {}
-    for i, col in enumerate(y_true.columns):
-        error = (y_true[col].values != y_pred.iloc[:, i].values).mean()
-        errores[col] = round(error, 4)
+    for col in y_true.columns:
+        errores[col] = (y_true[col] != y_pred[col]).mean()
     habilidades_ruidosas = sorted(errores.items(), key=lambda x: x[1], reverse=True)[:5]
 
     return {
-        "precision_promedio": round(precision, 4),
-        "recall_promedio": round(recall, 4),
-        "f1_promedio": round(f1, 4),
+        "precision_promedio": round(float(precision), 4),
+        "recall_promedio": round(float(recall), 4),
+        "f1_promedio": round(float(f1), 4),
         "habilidades_ruidosas": habilidades_ruidosas
     }
 
