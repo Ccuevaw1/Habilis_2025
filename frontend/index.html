@@ -483,6 +483,38 @@ inputManual.addEventListener("change", () => {
     .catch(() => alert("Error al verificar el modelo."));
 });
 
+// Añade este código donde manejas la verificación
+async function ejecutarEvaluacionCruzada() {
+  try {
+    const response = await fetch(`${API_URL}/evaluacion-cruzada`);
+    const data = await response.json();
+    
+    if (data.error) {
+      alert(data.error);
+      return;
+    }
+    
+    // Actualizar la interfaz
+    document.getElementById("eval-precision").textContent = 
+      (data.precision_promedio * 100).toFixed(2) + "%";
+    document.getElementById("eval-recall").textContent = 
+      (data.recall_promedio * 100).toFixed(2) + "%";
+    
+    // Formatear habilidades ruidosas
+    const ruidosasText = data.habilidades_ruidosas
+      .map(([hab, err]) => `${hab.replace(/^(hard|soft)_/, '')} (${(err * 100).toFixed(2)}%)`)
+      .join(", ");
+    
+    document.getElementById("eval-ruidosas").textContent = ruidosasText;
+    
+  } catch (error) {
+    console.error("Error en evaluación cruzada:", error);
+    alert("Error al realizar evaluación cruzada");
+  }
+}
+
+// Llamar esta función cuando sea necesario
+document.getElementById("btnEvaluarCruzada").addEventListener("click", ejecutarEvaluacionCruzada);
 </script>
 </body>
 </html>

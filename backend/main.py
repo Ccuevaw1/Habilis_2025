@@ -3,10 +3,12 @@ from sqlalchemy.orm import Session
 from database import SessionLocal,Base,engine
 from models.habilidad import Habilidad
 from fastapi.middleware.cors import CORSMiddleware
-from mineria import procesar_datos_computrabajo
+from mineria import procesar_datos_computrabajo, HabilidadesExtractor
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import cross_validate
+from sklearn.pipeline import Pipeline
+from sklearn.feature_extraction.text import CountVectorizer
 from models.tiempo import TiempoCarga
-import time
 from datetime import datetime, timezone
 import pandas as pd
 import shutil
@@ -125,8 +127,6 @@ async def subir_csv_crudo(file: UploadFile = File(...)):
 @app.post("/verificar-modelo/")
 async def verificar_modelo(file: UploadFile = File(...)):
     try:
-        import json
-
         # Guardar el archivo cargado
         temp_manual_path = "data/manual.csv"
         with open(temp_manual_path, "wb") as f:
@@ -141,18 +141,18 @@ async def verificar_modelo(file: UploadFile = File(...)):
         # Generar predicciones usando la función de minería
         df_predicho = procesar_datos_computrabajo(temp_manual_path)
 
-        # Extraer columnas de habilidades para comparar
+        # Extraer las columnas de habilidades (técnicas y blandas)
         columnas_habilidades = [col for col in df_real.columns if col.startswith("hard_") or col.startswith("soft_")]
 
+        # Preparar los datos verdaderos y predichos para calcular precisión y recall
         y_true = df_real[columnas_habilidades].applymap(lambda x: int(str(x).lower() in ["1", "true", "t"])).reset_index(drop=True)
         y_pred = df_predicho[columnas_habilidades].applymap(lambda x: int(str(x).lower() in ["1", "true", "t"])).reset_index(drop=True)
 
-
-        # Calcular precisión y recall
+        # **Cálculo de Precisión y Recall**
         precision = accuracy_score(y_true.values.flatten(), y_pred.values.flatten())
         recall = (y_pred & y_true).sum().sum() / y_true.sum().sum()
 
-        # Cobertura media por carrera
+        # **Cálculo de Cobertura Media por Carrera**
         if "career" in df_real.columns:
             carreras = df_real["career"].unique()
             cobertura = {}
@@ -166,12 +166,12 @@ async def verificar_modelo(file: UploadFile = File(...)):
         else:
             cobertura_media = None
 
-        # Habilidades más ruidosas
+        # **Cálculo de Habilidades Más Ruidosas**
         errores = abs(y_true - y_pred)
         errores_por_habilidad = errores.sum().sort_values(ascending=False)
         habilidades_ruidosas = errores_por_habilidad.head(5).to_dict()
 
-        # Preparar resultado
+        # Preparar los resultados
         resultado = {
             "precision": round(precision, 4),
             "recall": round(recall, 4),
@@ -180,6 +180,7 @@ async def verificar_modelo(file: UploadFile = File(...)):
             "mensaje": f"Precisión del modelo de minería: {precision * 100:.2f}%"
         }
 
+        # Guardar la evaluación
         os.makedirs("data", exist_ok=True)
         with open("data/evaluacion_modelo.json", "w") as f:
             json.dump(resultado, f, indent=2)
@@ -189,17 +190,60 @@ async def verificar_modelo(file: UploadFile = File(...)):
     except Exception as e:
         return {"error": str(e)}
 
-# @app.get("/precision-mineria/")
-# def obtener_precision_modelo():
-#     try:
-#         with open("data/precision_guardada.json", "r") as f:
-#             precision_data = json.load(f)
-#         return precision_data
-#     except FileNotFoundError:
-#         return {
-#             "precision": None,
-#             "mensaje": "⚠️ Aún no se ha verificado el modelo."
-#         }
+@app.get("/evaluacion-cruzada/")
+def evaluacion_cruzada(db: Session = Depends(get_db)):
+    # Obtener datos de la base de datos
+    registros = db.query(Habilidad).all()
+    df = pd.DataFrame([r.__dict__ for r in registros])
+    
+    if len(df) < 10:
+        return {"error": "Se necesitan al menos 10 registros para evaluación cruzada"}
+    
+    # Preparar datos
+    X = df[['title', 'company', 'workday', 'modality', 'salary']].fillna('')
+    X['texto_skills'] = X.apply(lambda row: ' '.join(str(v) for v in row.values), axis=1)
+    
+    # Columnas objetivo (y)
+    y = df[[col for col in df.columns if col.startswith('hard_') or col.startswith('soft_')]]
+    
+    # Pipeline de modelo
+    pipeline = Pipeline([
+        ('vectorizer', CountVectorizer()),  # Convierte texto a vectores
+        ('extractor', HabilidadesExtractor())  # Tu lógica de extracción
+    ])
+    
+    # Métricas a calcular
+    scoring = {
+        'precision': 'precision_micro',
+        'recall': 'recall_micro',
+        'f1': 'f1_micro'
+    }
+    
+    # Evaluación cruzada (5 folds)
+    scores = cross_validate(pipeline, X['texto_skills'], y, cv=5, scoring=scoring)
+    
+    # Calcular habilidades ruidosas
+    noisy_skills = calcular_habilidades_ruidosas(pipeline, X['texto_skills'], y)
+    
+    return {
+        "precision_promedio": float(scores['test_precision'].mean()),
+        "recall_promedio": float(scores['test_recall'].mean()),
+        "f1_promedio": float(scores['test_f1'].mean()),
+        "habilidades_ruidosas": noisy_skills
+    }
+
+def calcular_habilidades_ruidosas(model, X, y_real):
+    # Predicciones de todo el conjunto
+    y_pred = model.fit_transform(X)
+    
+    # Calcular error por habilidad
+    errores = {}
+    for i, col in enumerate(y_real.columns):
+        error = (y_real[col] != y_pred[:,i]).mean()
+        errores[col] = error
+    
+    # Ordenar y devolver top 5
+    return sorted(errores.items(), key=lambda x: x[1], reverse=True)[:5]
 
 @app.get("/estadisticas/salarios")
 def estadisticas_salarios(carrera: str = Query(..., description="Nombre de la carrera"), db: Session = Depends(get_db)):

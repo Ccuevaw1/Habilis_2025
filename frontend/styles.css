@@ -321,7 +321,7 @@ canvas {
 }
 
 .tabla-procesados td:not(.habilidad-activa) {
-  color: #718096;
+  color: #000000;
 }
 
 /* Contenedor de scroll (compartido) */
