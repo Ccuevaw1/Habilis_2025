@@ -139,7 +139,7 @@ async def verificar_modelo(file: UploadFile = File(...)):
             df_real = pd.read_csv(temp_manual_path, sep=';', encoding='latin1')
         
         # Generar predicciones usando la función de minería
-        df_predicho = pd.read_csv("data/datos_procesados.csv")
+        df_predicho = procesar_datos_computrabajo(temp_manual_path)
 
         # Extraer las columnas de habilidades (técnicas y blandas)
         columnas_habilidades = [col for col in df_real.columns if col.startswith("hard_") or col.startswith("soft_")]
@@ -191,6 +191,21 @@ async def verificar_modelo(file: UploadFile = File(...)):
 
     except Exception as e:
         return {"error": str(e)}
+
+@app.get("/precision-mineria/")
+def obtener_precision_modelo():
+    try:
+        with open("data/evaluacion_modelo.json", "r") as f:
+            evaluacion = json.load(f)
+        return {
+            "precision": evaluacion.get("precision"),
+            "mensaje": evaluacion.get("mensaje", "Precisión del modelo cargada correctamente.")
+        }
+    except FileNotFoundError:
+        return {
+            "precision": None,
+            "mensaje": "⚠️ Aún no se ha verificado el modelo."
+        }
 
 @app.get("/estadisticas/salarios")
 def estadisticas_salarios(carrera: str = Query(..., description="Nombre de la carrera"), db: Session = Depends(get_db)):

@@ -125,16 +125,11 @@
       </div>
     </div>
 
-    <div class="grafico-card" id="evaluacion-modelo-container" style="grid-column: 1 / span 2; grid-row: 6;">
-      <h3>Evaluación del Modelo de Minería</h3>
-      <ul id="resumen-evaluacion">
-        <li>Precisión estimada: <span id="eval-precision"></span></li>
-        <li>Recall global: <span id="eval-recall"></span></li>
-        <li>Cobertura media por carrera: <span id="eval-cobertura"></span></li>
-        <li>Habilidades más ruidosas: <span id="eval-ruidosas"></span></li>
-      </ul>
+    <div class="grafico-card" id="precision-container" style="grid-column: 1 / span 2; grid-row: 6;">
+      <h3>Precisión actual del modelo:</h3>
+      <p id="precision-modelo">Cargando...</p>
     </div>
-  </main>
+  </main
 </section>
 
 <script>
@@ -474,6 +469,17 @@ inputManual.addEventListener("change", () => {
     })
     .catch(() => alert("Error al verificar el modelo."));
 });
+
+fetch("https://habilis2025-production.up.railway.app/precision-mineria/")
+  .then(res => res.json())
+  .then(data => {
+    const precisionText = data.mensaje || `Precisión del modelo de minería: ${(data.precision * 100).toFixed(2)}%`;
+    document.getElementById('precision-modelo').innerText = precisionText;
+  })
+  .catch(() => {
+    document.getElementById('precision-modelo').innerText = "No se pudo cargar la precisión del modelo.";
+  });
+
 </script>
 </body>
 </html>
