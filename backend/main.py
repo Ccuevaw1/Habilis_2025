@@ -8,6 +8,7 @@ from sklearn.metrics import accuracy_score
 from models.tiempo import TiempoCarga
 from datetime import datetime, timezone
 import pandas as pd
+from unidecode import unidecode
 import shutil
 import json
 import os
@@ -121,6 +122,9 @@ async def subir_csv_crudo(file: UploadFile = File(...)):
 
     return {"message": f"{len(df)} registros procesados y guardados exitosamente."}
 
+def normalizar_columnas(df):
+    df.columns = [unidecode(col) for col in df.columns]
+    return df
 @app.post("/verificar-modelo/")
 async def verificar_modelo(file: UploadFile = File(...)):
     try:
@@ -134,9 +138,10 @@ async def verificar_modelo(file: UploadFile = File(...)):
             df_real = pd.read_csv(temp_manual_path, sep=';', encoding='utf-8')
         except UnicodeDecodeError:
             df_real = pd.read_csv(temp_manual_path, sep=';', encoding='latin1')
-
+        df_real = normalizar_columnas(df_real)
         # Generar predicciones usando la función de minería
         df_predicho = procesar_datos_computrabajo(temp_manual_path)
+        df_predicho = normalizar_columnas(df_predicho)
 
         # Extraer las columnas de habilidades (técnicas y blandas)
         columnas_habilidades = [col for col in df_real.columns if col.startswith("hard_") or col.startswith("soft_")]
