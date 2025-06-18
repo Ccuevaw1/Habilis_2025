@@ -3,9 +3,8 @@ from sqlalchemy.orm import Session
 from database import SessionLocal,Base,engine
 from models.habilidad import Habilidad
 from fastapi.middleware.cors import CORSMiddleware
-from mineria import procesar_datos_computrabajo, HabilidadesExtractor
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.metrics import precision_score, recall_score, f1_score
+from mineria import procesar_datos_computrabajo
+from sklearn.metrics import accuracy_score
 from models.tiempo import TiempoCarga
 from datetime import datetime, timezone
 import pandas as pd
@@ -122,41 +121,73 @@ async def subir_csv_crudo(file: UploadFile = File(...)):
 
     return {"message": f"{len(df)} registros procesados y guardados exitosamente."}
 
-@app.get("/evaluacion-cruzada/")
-def evaluacion_cruzada(db: Session = Depends(get_db)):
-    registros = db.query(Habilidad).all()
-    df = pd.DataFrame([r.__dict__ for r in registros])
-    
-    if len(df) < 10:
-        return {"error": "Se necesitan al menos 10 registros para evaluación cruzada"}
-    
-    # Preparar texto
-    X = df[['title', 'company', 'workday', 'modality', 'salary']].fillna('')
-    X['texto_skills'] = X.apply(lambda row: ' '.join(str(v) for v in row.values), axis=1)
+@app.post("/verificar-modelo/")
+async def verificar_modelo(file: UploadFile = File(...)):
+    try:
+        # Guardar el archivo cargado
+        temp_manual_path = "data/manual.csv"
+        with open(temp_manual_path, "wb") as f:
+            f.write(await file.read())
 
-    y_true = df[[col for col in df.columns if col.startswith('hard_') or col.startswith('soft_')]]
-    
-    # Aplicar el extractor
-    extractor = HabilidadesExtractor()
-    y_pred = extractor.transform(X)
+        # Leer el CSV manual que contiene las etiquetas verdaderas
+        try:
+            df_real = pd.read_csv(temp_manual_path, sep=';', encoding='utf-8')
+        except UnicodeDecodeError:
+            df_real = pd.read_csv(temp_manual_path, sep=';', encoding='latin1')
 
-    # Calcular métricas
-    precision = precision_score(y_true, y_pred, average='micro', zero_division=0)
-    recall = recall_score(y_true, y_pred, average='micro', zero_division=0)
-    f1 = f1_score(y_true, y_pred, average='micro', zero_division=0)
+        # Generar predicciones usando la función de minería
+        df_predicho = procesar_datos_computrabajo(temp_manual_path)
 
-    # Calcular habilidades ruidosas
-    errores = {}
-    for col in y_true.columns:
-        errores[col] = (y_true[col] != y_pred[col]).mean()
-    habilidades_ruidosas = sorted(errores.items(), key=lambda x: x[1], reverse=True)[:5]
+        # Extraer las columnas de habilidades (técnicas y blandas)
+        columnas_habilidades = [col for col in df_real.columns if col.startswith("hard_") or col.startswith("soft_")]
 
-    return {
-        "precision_promedio": round(float(precision), 4),
-        "recall_promedio": round(float(recall), 4),
-        "f1_promedio": round(float(f1), 4),
-        "habilidades_ruidosas": habilidades_ruidosas
-    }
+        # Preparar los datos verdaderos y predichos para calcular precisión y recall
+        y_true = df_real[columnas_habilidades].applymap(lambda x: int(str(x).lower() in ["1", "true", "t"])).reset_index(drop=True)
+        y_pred = df_predicho[columnas_habilidades].applymap(lambda x: int(str(x).lower() in ["1", "true", "t"])).reset_index(drop=True)
+
+        # **Cálculo de Precisión y Recall**
+        precision = accuracy_score(y_true.values.flatten(), y_pred.values.flatten())
+        recall = (y_pred & y_true).sum().sum() / y_true.sum().sum()
+
+        # **Cálculo de Cobertura Media por Carrera**
+        if "career" in df_real.columns:
+            carreras = df_real["career"].unique()
+            cobertura = {}
+            for carrera in carreras:
+                subset = df_real[df_real["career"] == carrera]
+                if len(subset) > 0:
+                    sub_pred = df_predicho[df_real["career"] == carrera]
+                    sub_cols = sub_pred[columnas_habilidades]
+                    cobertura[carrera] = sub_cols.sum(axis=1).mean()
+            cobertura_media = round(sum(cobertura.values()) / len(cobertura), 2)
+        else:
+            cobertura_media = None
+
+        # **Cálculo de Habilidades Más Ruidosas**
+        errores = abs(y_true - y_pred)
+        errores_por_habilidad = errores.sum().sort_values(ascending=False)
+        habilidades_ruidosas = {
+            k: round(v / len(y_true), 4)  # o dividir entre número total de ejemplos
+            for k, v in errores_por_habilidad.head(5).items()
+        }
+
+        # Preparar los resultados
+        resultado = {
+            "precision": round(precision, 4),
+            "recall": round(recall, 4),
+            "cobertura_media": cobertura_media,
+            "habilidades_ruidosas": habilidades_ruidosas,
+            "mensaje": f"Precisión del modelo de minería: {precision * 100:.2f}%"
+        }
+
+        # Guardar la evaluación
+        os.makedirs("data", exist_ok=True)
+        with open("data/evaluacion_modelo.json", "w") as f:
+            json.dump(resultado, f, indent=2)
+        return resultado
+
+    except Exception as e:
+        return {"error": str(e)}
 
 @app.get("/estadisticas/salarios")
 def estadisticas_salarios(carrera: str = Query(..., description="Nombre de la carrera"), db: Session = Depends(get_db)):
