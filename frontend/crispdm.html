@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Etapas CRISP-DM</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="encabezado">
+    <div class="barra-navegacion">
+      <img src="images/logo.png" alt="Logo Habilits" class="logo" />
+    </div>
+  </header>
+
+  <div class="breadcrumb">
+    <a href="index.html">← Volver al Dashboard</a>
+  </div>
+
+  <main class="dashboard-grid">
+    <div class="grafico-card" id="preparacion-datos-container" style="grid-column: 1 / span 2; grid-row: 4;">
+      <h3>Resumen de Preparación de los Datos</h3>
+      <ul id="resumen-preparacion" style="text-align: left; list-style-position: inside; padding-left: 0.5rem;">
+        <li>Total de registros en el CSV original: <span id="prep-total"></span></li>
+        <li>Registros eliminados: <span id="prep-eliminados"></span></li>
+        <li>Registros finales utilizados: <span id="prep-finales"></span></li>
+        <li>Registros con salario transformado: <span id="prep-salario-ok"></span></li>
+        <li>Campos nulos rellenados: <span id="prep-rellenos"></span></li>
+        <li>Columnas eliminadas: <span id="prep-columnas-eliminadas"></span></li>
+        <li>¿Caracteres limpiados?: <span id="prep-limpieza"></span></li>
+        <li>Habilidades detectadas: <span id="prep-habilidades"></span></li>
+      </ul>
+    </div>
+
+    <div class="grafico-card" id="preview-modelado-container" style="grid-column: 1 / span 2; grid-row: 5;">
+      <h3>MODELADO</h3>
+      <div class="tablas-contenedor">
+        <!-- Tabla sin procesar -->
+        <div class="tabla-seccion">
+          <h4>Datos de CSV sin procesar</h4>
+          <div class="tabla-scroll-container">
+            <table class="tabla-estilo tabla-crudos" id="tabla-antes"></table>
+          </div>
+        </div>
+       
+        <!-- Tabla procesada -->
+        <div class="tabla-seccion">
+          <h4>Datos Procesados</h4>
+          <div class="tabla-scroll-container">
+            <table class="tabla-estilo tabla-procesados" id="tabla-despues"></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grafico-card" id="precision-container" style="grid-column: 1 / span 2; grid-row: 6;">
+      <h3>Precisión actual del modelo:</h3>
+      <p id="precision-modelo">Cargando...</p>
+    </div>
+
+  </main>
+  <script src="main.js"></script> <!-- si decides separar JS en un archivo -->
+</body>
+</html>
