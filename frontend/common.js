@@ -114,7 +114,7 @@ export function generarTablaHTML(data) {
 }
 
 // FUNCIONES DE API
-async function subirCSV(file) {
+export async function subirCSV(file) {
   const formData = new FormData();
   formData.append("file", file);
   
