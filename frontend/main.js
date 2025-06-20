@@ -160,33 +160,32 @@ fileInput.addEventListener("change", () => {
   .then(res => res.json())
   .then(data => {
     const resumen = data.resumen;
-    document.getElementById("prep-total").textContent = resumen.originales;
-    document.getElementById("prep-eliminados").textContent = resumen.eliminados;
-    document.getElementById("prep-finales").textContent = resumen.finales;
-    document.getElementById("prep-salario-ok").textContent = resumen.transformaciones_salario;
-    document.getElementById("prep-rellenos").textContent = resumen.rellenos.join(", ");
-    document.getElementById("prep-columnas-eliminadas").textContent = resumen.columnas_eliminadas.join(", ");
-    document.getElementById("prep-limpieza").textContent = resumen.caracteres_limpiados ? "Sí" : "No";
-    document.getElementById("prep-habilidades").textContent = resumen.habilidades.join(", ");
-      
     const antes = data.preview_antes;
     const despues = data.preview_despues;
 
-    // Validación de estructura
-    if (!Array.isArray(antes)) {
-        console.error("Preview_antes no es un array:", antes);
-    } else {
-        const tablaAntes = document.getElementById("tabla-antes");
-        tablaAntes.innerHTML = generarTablaHTMLCruda(antes);  // Nueva función para datos crudos
+    function setTextoSiExiste(id, texto) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = texto;
     }
 
-    if (!Array.isArray(despues)) {
-        console.error("Preview_despues no es un array:", despues);
-    } else {
-        const tablaDespues = document.getElementById("tabla-despues");
-        tablaDespues.innerHTML = generarTablaHTML(despues);  // Función existente para datos procesados
-        alert("Archivo CSV cargado correctamente!");
+    function setTablaSiExiste(id, html) {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = html;
     }
+
+    setTextoSiExiste("prep-total", resumen.originales);
+    setTextoSiExiste("prep-eliminados", resumen.eliminados);
+    setTextoSiExiste("prep-finales", resumen.finales);
+    setTextoSiExiste("prep-salario-ok", resumen.transformaciones_salario);
+    setTextoSiExiste("prep-rellenos", resumen.rellenos.join(", "));
+    setTextoSiExiste("prep-columnas-eliminadas", resumen.columnas_eliminadas.join(", "));
+    setTextoSiExiste("prep-limpieza", resumen.caracteres_limpiados ? "Sí" : "No");
+    setTextoSiExiste("prep-habilidades", resumen.habilidades.join(", "));
+
+    setTablaSiExiste("tabla-antes", generarTablaHTMLCruda(antes));
+    setTablaSiExiste("tabla-despues", generarTablaHTML(despues));
+
+    alert("Archivo CSV cargado correctamente!");
   })
   .catch(() => alert("Error al subir el archivo, no cumple con la estructura proporcionada por Octoparse."));
 });
