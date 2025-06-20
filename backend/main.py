@@ -83,6 +83,15 @@ def estadisticas_habilidades(carrera: str = Query(..., description="Nombre de la
         "habilidades_blandas": habilidades_blandas
     }
 
+@app.get("/estado-csv-procesado")
+def obtener_estado_csv():
+    import os, json
+    ruta = "data/resultado_procesado.json"
+    if os.path.exists(ruta):
+        with open(ruta, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {"mensaje": "No hay datos cargados"}
+
 @app.post("/subir-csv-crudo/")
 async def subir_csv_crudo(file: UploadFile = File(...)):
     """

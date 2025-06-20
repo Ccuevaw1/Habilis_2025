@@ -345,3 +345,15 @@ fetch("https://habilis2025-production.up.railway.app/precision-mineria/")
     document.getElementById('precision-modelo').innerText = "No se pudo cargar la precisión del modelo.";
   });
 
+  if (window.location.pathname.includes("index.html") || window.location.pathname === "/") {
+  fetch("https://habilis2025-production.up.railway.app/estado-csv-procesado")
+    .then(res => res.json())
+    .then(data => {
+      // Ya existen datos procesados, entonces actualiza gráficos automáticamente
+      const carreraActual = document.getElementById("select-carrera").value;
+      if (carreraActual && carreraActual !== "Ingeniería") {
+        selectCarrera.dispatchEvent(new Event("change")); // fuerza el fetch de gráficas
+      }
+    });
+}
+

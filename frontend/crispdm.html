@@ -18,6 +18,11 @@
   </div>
 
   <main class="dashboard-grid">
+    <div class="subida-csv">
+      <input type="file" id="inputCsv" accept=".csv" style="display: none;" />
+      <button class="btn-subir" id="btnUpload">Subir CSV</button>
+    </div>
+    
     <div class="grafico-card" id="preparacion-datos-container" style="grid-column: 1 / span 2; grid-row: 4;">
       <h3>Resumen de Preparación de los Datos</h3>
       <ul id="resumen-preparacion" style="text-align: left; list-style-position: inside; padding-left: 0.5rem;">
@@ -59,6 +64,6 @@
     </div>
 
   </main>
-  <script src="main.js"></script> <!-- si decides separar JS en un archivo -->
+  <script src="main.js"></script>
 </body>
 </html>
