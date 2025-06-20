@@ -127,20 +127,20 @@ async function subirCSV(file) {
   return await response.json();
 }
 
-// FUNCIÓN PARA MEDIR Y REGISTRAR TIEMPOS
-export async function registrarTiempoCarga(carrera, inicioTiempo) {
-  const finTiempo = Date.now();
-  const tiempoTotal = (finTiempo - inicioTiempo) / 1000;
+// // FUNCIÓN PARA MEDIR Y REGISTRAR TIEMPOS
+// export async function registrarTiempoCarga(carrera, inicioTiempo) {
+//   const finTiempo = Date.now();
+//   const tiempoTotal = (finTiempo - inicioTiempo) / 1000;
   
-  console.log(`[DEBUG] Tiempo de identificación: ${tiempoTotal.toFixed(4)} segundos`);
+//   console.log(`[DEBUG] Tiempo de identificación: ${tiempoTotal.toFixed(4)} segundos`);
   
-  try {
-    const response = await fetch(`https://habilis2025-production.up.railway.app/tiempo-carga/?carrera=${encodeURIComponent(carrera)}&inicio=${inicioTiempo/1000}`, {
-      method: "POST"
-    });
-    return await response.json();
-  } catch (error) {
-    console.error("Error registrando tiempo:", error);
-    return { error: true };
-  }
-}
+//   try {
+//     const response = await fetch(`https://habilis2025-production.up.railway.app/tiempo-carga/?carrera=${encodeURIComponent(carrera)}&inicio=${inicioTiempo/1000}`, {
+//       method: "POST"
+//     });
+//     return await response.json();
+//   } catch (error) {
+//     console.error("Error registrando tiempo:", error);
+//     return { error: true };
+//   }
+// }
