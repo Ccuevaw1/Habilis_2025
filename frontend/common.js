@@ -13,7 +13,7 @@ function escapeHtml(text) {
     .replace(/'/g, '&#039;');
 }
 
-function generarTablaHTMLCruda(data) {
+export function generarTablaHTMLCruda(data) {
   if (!data || !Array.isArray(data) || data.length === 0) {
     return '<p class="error">No hay datos crudos disponibles</p>';
   }
@@ -42,7 +42,7 @@ function generarTablaHTMLCruda(data) {
   }
 }
 
-function generarTablaHTML(data) {
+export function generarTablaHTML(data) {
   if (!data || !Array.isArray(data) || data.length === 0) {
     return '<p class="error">No hay datos disponibles</p>';
   }
