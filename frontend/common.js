@@ -128,7 +128,7 @@ async function subirCSV(file) {
 }
 
 // FUNCIÓN PARA MEDIR Y REGISTRAR TIEMPOS
-export async function registrarTiempoCarga(carrera, inicioTiempo) {
+async function registrarTiempoCarga(carrera, inicioTiempo) {
   const finTiempo = Date.now();
   const tiempoTotal = (finTiempo - inicioTiempo) / 1000;
   
