@@ -1,4 +1,4 @@
-//import { registrarTiempoCarga } from './common.js';
+import { registrarTiempoCarga } from './common.js';
 import { API_URL, API_SALARIOS } from './common.js';
 // ELEMENTOS DEL DOM
 const selectCarrera = document.getElementById('select-carrera');
