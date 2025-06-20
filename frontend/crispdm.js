@@ -1,3 +1,5 @@
+// Agrega al inicio del archivo:
+import { generarTablaHTMLCruda, generarTablaHTML } from './common.js';
 // SUBIDA DE CSV
 const fileInput = document.getElementById("inputCsv");
 const btnUpload = document.getElementById("btnUpload");
