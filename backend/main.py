@@ -355,3 +355,22 @@ def registrar_tiempo_carga(
         "inicio": inicio_dt.isoformat(),
         "fin": fin_dt.isoformat()
     }
+
+@app.get("/registros-eliminados")
+def obtener_registros_eliminados():
+    try:
+        with open("data/registros_no_ingenieria.json", "r", encoding="utf-8") as f1:
+            no_ingenieria = json.load(f1)
+    except:
+        no_ingenieria = []
+
+    try:
+        with open("data/registros_no_clasificados.json", "r", encoding="utf-8") as f2:
+            no_clasificados = json.load(f2)
+    except:
+        no_clasificados = []
+
+    return {
+        "no_ingenieria": no_ingenieria,
+        "no_clasificados": no_clasificados
+    }

@@ -37,6 +37,10 @@ def procesar_datos_computrabajo(csv_path):
     filtro = df['Título'].apply(contiene_palabra_ingenieria) | df['Descripción'].apply(contiene_palabra_ingenieria)
     df = df[filtro].copy()
 
+    registros_no_ingenieria = df_original[~filtro].copy()
+    registros_no_ingenieria.to_json("data/registros_no_ingenieria.json", orient="records", force_ascii=False)
+
+
     # UNIFICAR TEXTO PARA MINERÍA DE HABILIDADES
     df['Descripción'] = df['Descripción'].str.replace(r'[\r\n]+', ' ', regex=True)
     df['Requerimientos'] = df['Requerimientos'].astype(str).str.replace(r'[\r\n]+', ' ', regex=True)
@@ -79,6 +83,11 @@ def procesar_datos_computrabajo(csv_path):
     df['Carrera Detectada'] = df.apply(lambda row: detectar_carrera_por_campos(
         row['Título'], row['Subtítulo'], row['Descripción'], row['Requerimientos']), axis=1)
     df = df[df['Carrera Detectada'] != 'No clasificado'].copy()
+
+    df_con_carrera = df.copy()
+    df = df[df['Carrera Detectada'] != 'No clasificado'].copy()
+    registros_no_clasificados = df_con_carrera[df_con_carrera['Carrera Detectada'] == 'No clasificado'].copy()
+    registros_no_clasificados.to_json("data/registros_no_clasificados.json", orient="records", force_ascii=False)
 
     # LIMPIEZA DE CARACTERES
     columnas_texto = df.select_dtypes(include='object').columns

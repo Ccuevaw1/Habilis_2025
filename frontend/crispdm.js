@@ -51,3 +51,29 @@ if (fileInput && btnUpload) {
     .catch(() => alert("Error al subir el archivo"));
   });
 }
+
+fetch("https://habilis2025-production.up.railway.app/registros-eliminados")
+  .then(res => res.json())
+  .then(data => {
+    renderTablaDesdeObjeto(data.no_ingenieria, "tabla-no-ingenieria");
+    renderTablaDesdeObjeto(data.no_clasificados, "tabla-no-clasificados");
+  });
+
+function renderTablaDesdeObjeto(datos, tablaId) {
+  if (!Array.isArray(datos) || datos.length === 0) return;
+
+  const tabla = document.getElementById(tablaId);
+  const columnas = Object.keys(datos[0]);
+
+  // Crear encabezado
+  tabla.innerHTML = `
+    <thead>
+      <tr>${columnas.map(col => `<th>${col}</th>`).join('')}</tr>
+    </thead>
+    <tbody>
+      ${datos.map(row =>
+        `<tr>${columnas.map(col => `<td>${row[col]}</td>`).join('')}</tr>`
+      ).join('')}
+    </tbody>
+  `;
+}
