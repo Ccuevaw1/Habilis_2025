@@ -1,6 +1,6 @@
 // CONSTANTES COMPARTIDAS
-const API_URL = 'https://habilis2025-production.up.railway.app/estadisticas/habilidades';
-const API_SALARIOS = 'https://habilis2025-production.up.railway.app/estadisticas/salarios';
+export const API_URL = 'https://habilis2025-production.up.railway.app/estadisticas/habilidades';
+export const API_SALARIOS = 'https://habilis2025-production.up.railway.app/estadisticas/salarios';
 
 // FUNCIONES UTILITARIAS
 function escapeHtml(text) {

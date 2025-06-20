@@ -1,6 +1,5 @@
 //import { registrarTiempoCarga } from './common.js';
-const API_URL = 'https://habilis2025-production.up.railway.app/estadisticas/habilidades';
-const API_SALARIOS = 'https://habilis2025-production.up.railway.app/estadisticas/salarios';
+import { API_URL, API_SALARIOS } from './common.js';
 // ELEMENTOS DEL DOM
 const selectCarrera = document.getElementById('select-carrera');
 const tituloCarrera = document.getElementById('titulo-carrera');
