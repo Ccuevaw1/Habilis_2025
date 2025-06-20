@@ -1,3 +1,4 @@
+import { registrarTiempoCarga } from './common.js';
 // ELEMENTOS DEL DOM
 const selectCarrera = document.getElementById('select-carrera');
 const tituloCarrera = document.getElementById('titulo-carrera');
