@@ -186,6 +186,7 @@ fileInput.addEventListener("change", () => {
     setTablaSiExiste("tabla-despues", generarTablaHTML(despues));
 
     alert("Archivo CSV cargado correctamente!");
+    location.reload();
   })
   .catch(() => alert("Error al subir el archivo, no cumple con la estructura proporcionada por Octoparse."));
 });
@@ -356,4 +357,3 @@ fetch("https://habilis2025-production.up.railway.app/precision-mineria/")
       }
     });
 }
-
