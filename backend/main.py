@@ -294,6 +294,13 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
             "habilidades": resumen["habilidades"]
         }
 
+        # Guardar registros eliminados como archivos .json
+        with open("data/registros_no_ingenieria.json", "w", encoding="utf-8") as f1:
+            json.dump(preview_no_ingenieria, f1, ensure_ascii=False, indent=2)
+
+        with open("data/registros_no_clasificados.json", "w", encoding="utf-8") as f2:
+            json.dump(preview_no_clasificados, f2, ensure_ascii=False, indent=2)
+
         # Insertar datos procesados en BD
         db = SessionLocal()
         db.query(Habilidad).delete()
@@ -328,7 +335,7 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
         return {
             "message": "❌ Error al procesar el archivo.",
             "error": str(e),
-            "detalle": error_trace  # Opcional para debug
+            "detalle": error_trace  
         }
 
 @app.post("/tiempo-carga/")
