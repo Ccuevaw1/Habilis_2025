@@ -23,10 +23,12 @@
 
   <main class="dashboard-grid">
     <div class="subida-csv">
-
+      <div style="text-align: center; margin-top: 1rem;">
+      <button class="btn-subir" id="btnProcesar" disabled>Procesar CSV</button>
+      </div>
     </div>
 
-    <div class="grafico-card" id="preparacion-datos-container" style="grid-column: 1 / span 2; grid-row: 4;">
+    <div class="grafico-card" id="preparacion-datos-container" style="display: none; grid-column: 1 / span 2; grid-row: 4;">
       <h3>Resumen de Preparación de los Datos</h3>
       <ul id="resumen-preparacion" style="text-align: left; list-style-position: inside; padding-left: 0.5rem;">
         <li>Total de registros en el CSV original: <span id="prep-total"></span></li>
@@ -40,7 +42,7 @@
       </ul>
     </div>
 
-    <div class="grafico-card" style="grid-column: 1 / span 2; grid-row: 7;">
+    <div class="grafico-card" style="grid-column: 1 / span 2; grid-row: 5;">
       <h3>Registros eliminados durante el preprocesamiento</h3>
 
       <div class="tabla-seccion">
@@ -58,7 +60,7 @@
       </div>
     </div>
 
-    <div class="grafico-card" id="preview-modelado-container" style="grid-column: 1 / span 2; grid-row: 5;">
+    <div class="grafico-card" id="preview-modelado-container" style="display: none; grid-column: 1 / span 2; grid-row: 6;">
       <h3>MODELADO</h3>
       <div class="tablas-contenedor">
         <!-- Tabla sin procesar -->
@@ -79,7 +81,7 @@
       </div>
     </div>
     
-    <div class="grafico-card" id="precision-container" style="grid-column: 1 / span 2; grid-row: 6;">
+    <div class="grafico-card" id="precision-container" style="display: none; grid-column: 1 / span 2; grid-row: 7;">
       <h3>Precisión actual del modelo:</h3>
       <p id="precision-modelo">Cargando...</p>
     </div>
