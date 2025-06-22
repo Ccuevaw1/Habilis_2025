@@ -82,7 +82,6 @@ def procesar_datos_computrabajo(csv_path):
         return max(puntajes, key=puntajes.get) if any(puntajes.values()) else 'No clasificado'
     df['Carrera Detectada'] = df.apply(lambda row: detectar_carrera_por_campos(
         row['Título'], row['Subtítulo'], row['Descripción'], row['Requerimientos']), axis=1)
-    df = df[df['Carrera Detectada'] != 'No clasificado'].copy()
 
     df_con_carrera = df.copy()
     df = df[df['Carrera Detectada'] != 'No clasificado'].copy()
