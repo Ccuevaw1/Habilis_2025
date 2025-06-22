@@ -144,9 +144,9 @@ def procesar_datos_computrabajo(csv_path):
     }
 
     # Preparar datos para mostrar
-    preview_no_ingenieria = registros_no_ingenieria.head(5).fillna('').astype(str).to_dict(orient='records')
-    preview_no_clasificados = registros_no_clasificados.head(5).fillna('').astype(str).to_dict(orient='records')
-    preview_antes = df_original.head(5).fillna('').astype(str).to_dict(orient='records')
-    preview_despues = df_final.head(5).fillna('').to_dict(orient='records')
+    preview_no_ingenieria = registros_no_ingenieria.fillna('').astype(str).to_dict(orient='records')
+    preview_no_clasificados = registros_no_clasificados.fillna('').astype(str).to_dict(orient='records')
+    preview_antes = df_original.fillna('').astype(str).to_dict(orient='records')
+    preview_despues = df_final.fillna('').to_dict(orient='records')
 
     return df_final, resumen, columnas_detectadas, preview_antes, preview_despues, preview_no_ingenieria, preview_no_clasificados
