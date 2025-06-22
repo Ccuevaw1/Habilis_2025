@@ -27,7 +27,7 @@ def procesar_datos_computrabajo(csv_path):
     df.rename(columns={'Salario_Valor': 'Salario'}, inplace=True)
 
     # FILTRADO POR INGENIERÍAS
-    keywords_engineering = ['ingeniería', 'ingeniero', 'industrial', 'sistemas', 'civil', 'ambiental', 'agrónoma', 'minas']
+    keywords_engineering = ['Engineer', 'ingeniería', 'ingeniero', 'industrial', 'sistemas', 'civil', 'ambiental', 'agrónoma', 'agrónomo','minas']
     def contiene_palabra_ingenieria(texto):
         if isinstance(texto, str):
             return any(palabra in texto for palabra in keywords_engineering)
@@ -69,7 +69,7 @@ def procesar_datos_computrabajo(csv_path):
     # CLASIFICACIÓN DE CARRERA
     df['Subtítulo'] = df['Subtítulo'].astype(str).str.lower()
     carrera_keywords = {
-        'Ingeniería de Sistemas': ['ingeniería de sistemas', 'ing. sistemas', 'sistemas', 'informática', 'python', 'java', 'sql'],
+        'Ingeniería de Sistemas': ['Engineer', 'ingeniería de sistemas', 'ing. sistemas', 'sistemas', 'informática', 'python', 'java', 'sql'],
         'Ingeniería de Minas': ['ingeniería de minas', 'minería', 'voladura', 'mina', 'unidad minera'],
         'Ingeniería Industrial': ['ingeniería industrial', 'procesos', 'gestión de calidad', 'producción', 'logística'],
         'Ingeniería Civil': ['ingeniería civil', 'autocad', 'estructuras', 'obra', 'planos'],
