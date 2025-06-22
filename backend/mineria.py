@@ -95,7 +95,7 @@ def procesar_datos_computrabajo(csv_path):
         'Ingeniería Industrial': ['ingeniería industrial', 'procesos', 'gestión de calidad', 'producción', 'logística'],
         'Ingeniería Civil': ['ingeniería civil', 'autocad', 'estructuras', 'obra', 'planos'],
         'Ingeniería Ambiental': ['ingeniería ambiental', 'medio ambiente', 'impacto ambiental', 'residuos'],
-        'Ingeniería Agrónoma': ['ingeniería agrónoma', 'cultivos', 'agronomía', 'agroindustria', 'agrícola']
+        'Ingeniería Agrónoma': ['ingeniería agrónoma', 'cultivos', 'agronomía', 'agroindustria', 'agrícola', 'agrónomo']
     }
 
     def detectar_carrera_por_campos(titulo, subtitulo, descripcion, requerimientos):
