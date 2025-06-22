@@ -47,7 +47,11 @@ if (document.getElementById('graficoTecnicas')) {
         document.querySelector('#tabla-tecnicas tbody').innerHTML = topTecnicas.map((h, i) =>
           `<tr><td>${i+1}</td><td>${h.nombre}</td><td>${h.frecuencia}</td></tr>`).join('');
       });
-
+    // Registrar tiempo de carga
+        registrarTiempoCarga(carrera, inicioTiempo)
+          .then(data => console.log(data.mensaje))
+          .catch(err => console.warn("No se pudo registrar el tiempo:", err));
+          
     // Fetch salarios
     fetch(`${API_SALARIOS}?carrera=${encodeURIComponent(carrera)}`)
       .then(res => res.json())
@@ -111,10 +115,6 @@ if (document.getElementById('graficoTecnicas')) {
             }
         }
         });
-        // Registrar tiempo de carga
-        registrarTiempoCarga(carrera, inicioTiempo)
-          .then(data => console.log(data.mensaje))
-          .catch(err => console.warn("No se pudo registrar el tiempo:", err));
       });
   });
 }
