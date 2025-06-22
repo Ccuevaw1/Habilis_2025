@@ -8,6 +8,7 @@ from sklearn.metrics import accuracy_score
 from models.tiempo import TiempoCarga
 from datetime import datetime, timezone
 import pandas as pd
+from pydantic import BaseModel
 from unidecode import unidecode
 import shutil
 import json
@@ -338,24 +339,23 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
             "detalle": error_trace  # Opcional para debug
         }
 
+class TiempoCargaRequest(BaseModel):
+    carrera: str
+    inicio: float  # timestamp UNIX en segundos
+    fin: float     # timestamp UNIX en segundos
+
 @app.post("/tiempo-carga/")
-def registrar_tiempo_carga(
-    carrera: str = Query(...),
-    inicio: float = Query(...),  # UNIX timestamp desde el frontend
-    db: Session = Depends(get_db)
-):
-    # Convertir timestamp a datetime con zona horaria UTC
-    inicio_dt = datetime.fromtimestamp(inicio, timezone.utc)
-    fin_dt = datetime.now(timezone.utc)
+def registrar_tiempo_carga(req: TiempoCargaRequest, db: Session = Depends(get_db)):
+    inicio_dt = datetime.fromtimestamp(req.inicio, timezone.utc)
+    fin_dt = datetime.fromtimestamp(req.fin, timezone.utc)
     duracion = round((fin_dt - inicio_dt).total_seconds(), 4)
 
     nuevo_log = TiempoCarga(
-        carrera=carrera,
+        carrera=req.carrera,
         inicio=inicio_dt,
         fin=fin_dt,
         tiempo_segundos=duracion
     )
-
     db.add(nuevo_log)
     db.commit()
 
