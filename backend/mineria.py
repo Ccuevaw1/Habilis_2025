@@ -82,8 +82,8 @@ def procesar_datos_computrabajo(csv_path):
         'Ingeniería Agrónoma': ['ingeniería agrónoma', 'cultivos', 'agronomía', 'ingeniero agrónomo' 'agroindustria', 'agrícola']
     }
 
-    def detectar_carrera_por_campos(titulo, subtitulo, descripcion, requerimientos):
-        texto_total = f"{titulo} {subtitulo} {descripcion} {requerimientos}".lower()
+    def detectar_carrera_por_campos(Título, Subtítulo, Descripcion, Requerimientos):
+        texto_total = f"{Título} {Subtítulo} {Descripcion} {Requerimientos}".lower()
         
         puntajes = {c: sum(1 for kw in kws if kw in texto_total) for c, kws in carrera_keywords.items()}
         
