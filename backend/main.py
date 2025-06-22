@@ -266,7 +266,7 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
             shutil.copyfileobj(file.file, f)
 
         # Procesar archivo CSV (mineria.py)
-        df_final, resumen, columnas_detectadas, preview_antes, preview_despues = procesar_datos_computrabajo(path_csv)
+        df_final, resumen, columnas_detectadas, preview_antes, preview_despues, preview_no_ingenieria, preview_no_clasificados = procesar_datos_computrabajo(path_csv)
 
        # Asegurar que ambos previews sean listas válidas (ya vienen como dicts)
         if not isinstance(preview_antes, list):
@@ -316,7 +316,9 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
             "message": f"{len(df_final)} registros procesados y guardados exitosamente.",
             "resumen": resumen,
             "preview_antes": preview_antes,
-            "preview_despues": preview_despues
+            "preview_despues": preview_despues,
+            "no_ingenieria": preview_no_ingenieria,
+            "no_clasificados": preview_no_clasificados
         }
 
     except Exception as e:
