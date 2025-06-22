@@ -28,7 +28,7 @@ def procesar_datos_computrabajo(csv_path):
 
     # FILTRADO POR INGENIERÍAS
     keywords_engineering = [
-    'engineer', 'ingeniería', 'ingeniero', 'ing.', 'industrial', 'civil', 'sistemas', 'ambiental',
+    'engineer', 'ingeniería', 'ingeniero', 'ingeniero agrónomo', 'ing.', 'industrial', 'civil', 'sistemas', 'ambiental',
     'agronomía', 'agrónomo', 'agronoma', 'agronomist', 'minas', 'minería', 'software engineer',
     'network engineer', 'system engineer', 'data engineer', 'devops', 'frontend', 'backend'
     ]
@@ -74,12 +74,12 @@ def procesar_datos_computrabajo(csv_path):
     # CLASIFICACIÓN DE CARRERA
     df['Subtítulo'] = df['Subtítulo'].astype(str).str.lower()
     carrera_keywords = {
-        'Ingeniería de Sistemas': ['Engineer', 'ingeniería de sistemas', 'ing. sistemas', 'sistemas', 'informática', 'python', 'java', 'sql'],
+        'Ingeniería de Sistemas': ['network engineer', 'ingeniería de sistemas', 'ing. sistemas', 'sistemas', 'informática', 'python', 'java', 'sql'],
         'Ingeniería de Minas': ['ingeniería de minas', 'minería', 'voladura', 'mina', 'unidad minera'],
         'Ingeniería Industrial': ['ingeniería industrial', 'procesos', 'gestión de calidad', 'producción', 'logística'],
         'Ingeniería Civil': ['ingeniería civil', 'civil', 'autocad', 'estructuras', 'obra', 'planos'],
         'Ingeniería Ambiental': ['ingeniería ambiental', 'medio ambiente', 'impacto ambiental', 'residuos'],
-        'Ingeniería Agrónoma': ['ingeniería agrónoma', 'cultivos', 'agronomía', 'agrónomo' 'agroindustria', 'agrícola']
+        'Ingeniería Agrónoma': ['ingeniería agrónoma', 'cultivos', 'agronomía', 'ingeniero agrónomo' 'agroindustria', 'agrícola']
     }
 
     def detectar_carrera_por_campos(titulo, subtitulo, descripcion, requerimientos):
