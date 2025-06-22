@@ -40,6 +40,7 @@ def procesar_datos_computrabajo(csv_path):
     registros_no_ingenieria = df_original[~filtro].copy()
     registros_no_ingenieria.to_json("data/registros_no_ingenieria.json", orient="records", force_ascii=False)
 
+
     # UNIFICAR TEXTO PARA MINERÍA DE HABILIDADES
     df['Descripción'] = df['Descripción'].str.replace(r'[\r\n]+', ' ', regex=True)
     df['Requerimientos'] = df['Requerimientos'].astype(str).str.replace(r'[\r\n]+', ' ', regex=True)
@@ -66,67 +67,28 @@ def procesar_datos_computrabajo(csv_path):
         df[col] = df['texto_skills'].str.contains(rf'\b{re.escape(skill)}\b', regex=True)
 
     # CLASIFICACIÓN DE CARRERA
-    # df['Subtítulo'] = df['Subtítulo'].astype(str).str.lower()
-    # carrera_keywords = {
-    #     'Ingeniería de Sistemas': ['ingeniería de sistemas', 'ing. sistemas', 'sistemas', 'informática', 'python', 'java', 'sql'],
-    #     'Ingeniería de Minas': ['ingeniería de minas', 'minería', 'voladura', 'mina', 'unidad minera'],
-    #     'Ingeniería Industrial': ['ingeniería industrial', 'procesos', 'gestión de calidad', 'producción', 'logística'],
-    #     'Ingeniería Civil': ['ingeniería civil', 'autocad', 'estructuras', 'obra', 'planos'],
-    #     'Ingeniería Ambiental': ['ingeniería ambiental', 'medio ambiente', 'impacto ambiental', 'residuos'],
-    #     'Ingeniería Agrónoma': ['ingeniería agrónoma', 'cultivos', 'agronomía', 'agroindustria', 'agrícola']
-    # }
-    # def detectar_carrera_por_campos(titulo, subtitulo, descripcion, requerimientos):
-    #     texto_total = f"{titulo} {subtitulo} {descripcion} {requerimientos}"
-    #     puntajes = {c: sum(1 for kw in kws if kw in texto_total) for c, kws in carrera_keywords.items()}
-    #     return max(puntajes, key=puntajes.get) if any(puntajes.values()) else 'No clasificado'
-    # df['Carrera Detectada'] = df.apply(lambda row: detectar_carrera_por_campos(
-    #     row['Título'], row['Subtítulo'], row['Descripción'], row['Requerimientos']), axis=1)
-    # df = df[df['Carrera Detectada'] != 'No clasificado'].copy()
-
-    # === CLASIFICACIÓN DE CARRERA (ANTES DE FILTRAR) ===
-    df_original['Título'] = df_original['Título'].astype(str).str.lower()
-    df_original['Descripción'] = df_original['Descripción'].astype(str).str.lower()
-    df_original['Subtítulo'] = df_original['Subtítulo'].astype(str).str.lower()
-    df_original['Requerimientos'] = df_original['Requerimientos'].astype(str).str.lower()
-
+    df['Subtítulo'] = df['Subtítulo'].astype(str).str.lower()
     carrera_keywords = {
         'Ingeniería de Sistemas': ['ingeniería de sistemas', 'ing. sistemas', 'sistemas', 'informática', 'python', 'java', 'sql'],
         'Ingeniería de Minas': ['ingeniería de minas', 'minería', 'voladura', 'mina', 'unidad minera'],
         'Ingeniería Industrial': ['ingeniería industrial', 'procesos', 'gestión de calidad', 'producción', 'logística'],
         'Ingeniería Civil': ['ingeniería civil', 'autocad', 'estructuras', 'obra', 'planos'],
         'Ingeniería Ambiental': ['ingeniería ambiental', 'medio ambiente', 'impacto ambiental', 'residuos'],
-        'Ingeniería Agrónoma': ['ingeniería agrónoma', 'cultivos', 'agronomía', 'agroindustria', 'agrícola', 'agrónomo']
+        'Ingeniería Agrónoma': ['ingeniería agrónoma', 'cultivos', 'agronomía', 'agroindustria', 'agrícola']
     }
-
     def detectar_carrera_por_campos(titulo, subtitulo, descripcion, requerimientos):
         texto_total = f"{titulo} {subtitulo} {descripcion} {requerimientos}"
         puntajes = {c: sum(1 for kw in kws if kw in texto_total) for c, kws in carrera_keywords.items()}
         return max(puntajes, key=puntajes.get) if any(puntajes.values()) else 'No clasificado'
-
-    df_original['Carrera Detectada'] = df_original.apply(lambda row: detectar_carrera_por_campos(
+    df['Carrera Detectada'] = df.apply(lambda row: detectar_carrera_por_campos(
         row['Título'], row['Subtítulo'], row['Descripción'], row['Requerimientos']), axis=1)
-
-    # Guardar registros no clasificados
-    registros_no_clasificados = df_original[df_original['Carrera Detectada'] == 'No clasificado'].copy()
-    registros_no_clasificados.to_json("data/registros_no_clasificados.json", orient="records", force_ascii=False)
-
-    # === Filtrar por carreras de ingeniería (después de clasificar) ===
-    keywords_engineering = ['ingeniería', 'ingeniero', 'industrial', 'sistemas', 'civil', 'ambiental', 'agrónoma', 'minas']
-    def contiene_palabra_ingenieria(texto):
-        if isinstance(texto, str):
-            return any(palabra in texto for palabra in keywords_engineering)
-        return False
-
-    filtro = df_original['Título'].apply(contiene_palabra_ingenieria) | df_original['Descripción'].apply(contiene_palabra_ingenieria)
-    df = df_original[filtro].copy()
-
-    registros_no_ingenieria = df_original[~filtro].copy()
-    registros_no_ingenieria.to_json("data/registros_no_ingenieria.json", orient="records", force_ascii=False)
+    df = df[df['Carrera Detectada'] != 'No clasificado'].copy()
 
     df_con_carrera = df.copy()
+    df = df[df['Carrera Detectada'] != 'No clasificado'].copy()
     registros_no_clasificados = df_con_carrera[df_con_carrera['Carrera Detectada'] == 'No clasificado'].copy()
     registros_no_clasificados.to_json("data/registros_no_clasificados.json", orient="records", force_ascii=False)
-    df = df[df['Carrera Detectada'] != 'No clasificado'].copy()
+
     # LIMPIEZA DE CARACTERES
     columnas_texto = df.select_dtypes(include='object').columns
     def limpiar_y_contar(texto):
@@ -182,16 +144,10 @@ def procesar_datos_computrabajo(csv_path):
     }
 
     # Preparar datos para mostrar
-    preview_no_ingenieria = registros_no_ingenieria.fillna('').astype(str).to_dict(orient='records')
-    preview_no_clasificados = registros_no_clasificados.fillna('').astype(str).to_dict(orient='records')
-    preview_antes = df_original.fillna('').astype(str).to_dict(orient='records')
-    preview_despues = df_final.fillna('').to_dict(orient='records')
+    preview_antes = df_original.head(5).fillna('').astype(str).to_dict(orient='records')
+    preview_despues = df_final.head(5).fillna('').to_dict(orient='records')
     
-    return (
-        df_final, resumen, columnas_detectadas, preview_antes,
-        preview_despues, preview_no_ingenieria,
-        preview_no_clasificados
-    )
+    return df_final, resumen, columnas_detectadas, preview_antes, preview_despues
 
 class HabilidadesExtractor(BaseEstimator, TransformerMixin):
     """
