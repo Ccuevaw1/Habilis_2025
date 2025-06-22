@@ -27,7 +27,12 @@ def procesar_datos_computrabajo(csv_path):
     df.rename(columns={'Salario_Valor': 'Salario'}, inplace=True)
 
     # FILTRADO POR INGENIERÍAS
-    keywords_engineering = ['Engineer', 'ingeniería', 'ingeniero', 'industrial', 'sistemas', 'civil', 'ambiental', 'agrónoma', 'agrónomo','minas']
+    keywords_engineering = [
+    'engineer', 'ingeniería', 'ingeniero', 'ing.', 'industrial', 'civil', 'sistemas', 'ambiental',
+    'agronomía', 'agrónomo', 'agronoma', 'agronomist', 'minas', 'minería', 'software engineer',
+    'network engineer', 'system engineer', 'data engineer', 'devops', 'frontend', 'backend'
+    ]
+
     def contiene_palabra_ingenieria(texto):
         if isinstance(texto, str):
             return any(palabra in texto for palabra in keywords_engineering)
@@ -72,14 +77,25 @@ def procesar_datos_computrabajo(csv_path):
         'Ingeniería de Sistemas': ['Engineer', 'ingeniería de sistemas', 'ing. sistemas', 'sistemas', 'informática', 'python', 'java', 'sql'],
         'Ingeniería de Minas': ['ingeniería de minas', 'minería', 'voladura', 'mina', 'unidad minera'],
         'Ingeniería Industrial': ['ingeniería industrial', 'procesos', 'gestión de calidad', 'producción', 'logística'],
-        'Ingeniería Civil': ['ingeniería civil', 'autocad', 'estructuras', 'obra', 'planos'],
+        'Ingeniería Civil': ['ingeniería civil', 'civil', 'autocad', 'estructuras', 'obra', 'planos'],
         'Ingeniería Ambiental': ['ingeniería ambiental', 'medio ambiente', 'impacto ambiental', 'residuos'],
-        'Ingeniería Agrónoma': ['ingeniería agrónoma', 'cultivos', 'agronomía', 'agroindustria', 'agrícola']
+        'Ingeniería Agrónoma': ['ingeniería agrónoma', 'cultivos', 'agronomía', 'agrónomo' 'agroindustria', 'agrícola']
     }
+
     def detectar_carrera_por_campos(titulo, subtitulo, descripcion, requerimientos):
-        texto_total = f"{titulo} {subtitulo} {descripcion} {requerimientos}"
+        texto_total = f"{titulo} {subtitulo} {descripcion} {requerimientos}".lower()
+        
         puntajes = {c: sum(1 for kw in kws if kw in texto_total) for c, kws in carrera_keywords.items()}
-        return max(puntajes, key=puntajes.get) if any(puntajes.values()) else 'No clasificado'
+        
+        if any(puntajes.values()):
+            return max(puntajes, key=puntajes.get)
+        
+        if 'ingeniero' in texto_total or 'ing.' in texto_total:
+            for carrera, kws in carrera_keywords.items():
+                if any(kw in texto_total for kw in kws):
+                    return carrera
+        return 'No clasificado'
+
     df['Carrera Detectada'] = df.apply(lambda row: detectar_carrera_por_campos(
         row['Título'], row['Subtítulo'], row['Descripción'], row['Requerimientos']), axis=1)
 
