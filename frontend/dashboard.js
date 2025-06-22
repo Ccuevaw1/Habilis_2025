@@ -113,7 +113,7 @@ if (document.getElementById('graficoTecnicas')) {
         });
         // Registrar tiempo de carga
         registrarTiempoCarga(carrera, inicioTiempo)
-          .then(res => res.json())
+          //.then(res => res.json())
           .then(data => console.log(data.mensaje))
           .catch(err => console.warn("No se pudo registrar el tiempo:", err));
       });
