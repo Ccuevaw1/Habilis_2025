@@ -59,12 +59,15 @@ def procesar_datos_computrabajo(csv_path):
         'liderazgo', 'responsabilidad', 'creatividad', 'resolución de problemas',
         'orientación al cliente', 'pensamiento crítico'
     ]
+    
     for skill in hard_skills:
         col = f"hard_{skill.replace('/', '_').replace(' ', '_')}"
         df[col] = df['texto_skills'].str.contains(rf'\b{re.escape(skill)}\b', regex=True)
+
     for skill in soft_skills:
         col = f"soft_{skill.replace(' ', '_')}"
         df[col] = df['texto_skills'].str.contains(rf'\b{re.escape(skill)}\b', regex=True)
+
 
     # CLASIFICACIÓN DE CARRERA
     df['Subtítulo'] = df['Subtítulo'].astype(str).str.lower()
@@ -155,54 +158,54 @@ def procesar_datos_computrabajo(csv_path):
         preview_no_clasificados
     )
 
-class HabilidadesExtractor(BaseEstimator, TransformerMixin):
-    """
-    Clase para extracción de habilidades compatible con scikit-learn
-    """
-    def __init__(self):
-        # Definición de habilidades (las mismas que usas actualmente)
-        self.hard_skills = [
-            'python', 'java', 'sql', '_net', 'javascript', 'html', 'css', 'django', 'flask', 'react', 'angular',
-            'node', 'power bi', 'sap', 'aws', 'azure', 'git', 'github', 'ci/cd', 'linux', 'docker', 'kubernetes',
-            'etl', 'big data', 'data lake', 'postgresql', 'mysql', 'nosql', 'mongodb', 'cloud', 'bash', 'jira',
-            'excel', 'autocad', 'r', 'office', 'google_workspace', 'matlab', 'project', 'solidworks', 'Manejo_de_datos',
-            'seguridad', 'desarrollo_web', 'gestión_proyectos', 'Mejora_procesos'
-        ]
-        self.soft_skills = [
-            'comunicación', 'trabajo en equipo', 'proactividad', 'compromiso', 'adaptabilidad',
-            'liderazgo', 'responsabilidad', 'creatividad', 'resolución de problemas',
-            'orientación al cliente', 'pensamiento crítico'
-        ]
+# class HabilidadesExtractor(BaseEstimator, TransformerMixin):
+#     """
+#     Clase para extracción de habilidades compatible con scikit-learn
+#     """
+#     def __init__(self):
+#         # Definición de habilidades (las mismas que usas actualmente)
+#         self.hard_skills = [
+#             'python', 'java', 'sql', '_net', 'javascript', 'html', 'css', 'django', 'flask', 'react', 'angular',
+#             'node', 'power bi', 'sap', 'aws', 'azure', 'git', 'github', 'ci/cd', 'linux', 'docker', 'kubernetes',
+#             'etl', 'big data', 'data lake', 'postgresql', 'mysql', 'nosql', 'mongodb', 'cloud', 'bash', 'jira',
+#             'excel', 'autocad', 'r', 'office', 'google_workspace', 'matlab', 'project', 'solidworks', 'Manejo_de_datos',
+#             'seguridad', 'desarrollo_web', 'gestión_proyectos', 'Mejora_procesos'
+#         ]
+#         self.soft_skills = [
+#             'comunicación', 'trabajo en equipo', 'proactividad', 'compromiso', 'adaptabilidad',
+#             'liderazgo', 'responsabilidad', 'creatividad', 'resolución de problemas',
+#             'orientación al cliente', 'pensamiento crítico'
+#         ]
         
-        # Precompilar expresiones regulares para mejor performance
-        self.regex_cache = {}
-        for skill in self.hard_skills + self.soft_skills:
-            self.regex_cache[skill] = re.compile(rf'\b{re.escape(skill)}\b', re.IGNORECASE)
+#         # Precompilar expresiones regulares para mejor performance
+#         self.regex_cache = {}
+#         for skill in self.hard_skills + self.soft_skills:
+#             self.regex_cache[skill] = re.compile(rf'\b{re.escape(skill)}\b', re.IGNORECASE)
 
-    def fit(self, X, y=None):
-        return self
+#     def fit(self, X, y=None):
+#         return self
     
-    def transform(self, X):
-        """
-        Transforma texto en características de habilidades
-        X: DataFrame con columna 'texto_skills' o similar
-        """
-        if isinstance(X, pd.DataFrame):
-            textos = X['texto_skills'] if 'texto_skills' in X.columns else X.iloc[:, 0]
-        else:
-            textos = X
+#     def transform(self, X):
+#         """
+#         Transforma texto en características de habilidades
+#         X: DataFrame con columna 'texto_skills' o similar
+#         """
+#         if isinstance(X, pd.DataFrame):
+#             textos = X['texto_skills'] if 'texto_skills' in X.columns else X.iloc[:, 0]
+#         else:
+#             textos = X
             
-        resultados = []
-        for texto in textos:
-            fila = {}
-            # Procesar hard skills
-            for skill in self.hard_skills:
-                col_name = f"hard_{skill.replace('/', '_').replace(' ', '_')}"
-                fila[col_name] = int(self.regex_cache[skill].search(str(texto)) is not None)
-            # Procesar soft skills
-            for skill in self.soft_skills:
-                col_name = f"soft_{skill.replace(' ', '_')}"
-                fila[col_name] = int(self.regex_cache[skill].search(str(texto)) is not None)
-            resultados.append(fila)
+#         resultados = []
+#         for texto in textos:
+#             fila = {}
+#             # Procesar hard skills
+#             for skill in self.hard_skills:
+#                 col_name = f"hard_{skill.replace('/', '_').replace(' ', '_')}"
+#                 fila[col_name] = int(self.regex_cache[skill].search(str(texto)) is not None)
+#             # Procesar soft skills
+#             for skill in self.soft_skills:
+#                 col_name = f"soft_{skill.replace(' ', '_')}"
+#                 fila[col_name] = int(self.regex_cache[skill].search(str(texto)) is not None)
+#             resultados.append(fila)
         
-        return pd.DataFrame(resultados)
+#         return pd.DataFrame(resultados)
