@@ -20,7 +20,7 @@ if (document.getElementById('graficoTecnicas')) {
 
   // EVENTO PARA CAMBIO DE CARRERA (CON MEDICIÓN DE TIEMPO)
   selectCarrera.addEventListener('change', () => {
-    const inicioTiempo = performance.now();
+    const inicioTiempo = Date.now();
     const carrera = selectCarrera.value;
     tituloCarrera.textContent = carrera.toUpperCase();
 
