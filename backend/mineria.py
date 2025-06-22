@@ -21,7 +21,7 @@ def procesar_datos_computrabajo(csv_path):
     df[['Salario_Simbolo', 'Salario_Valor']] = df['Salario'].str.extract(r'(\D+)?([\d.,]+)')
     df['Salario'] = df['Salario'].str.replace('.', '', regex=False).str.replace(',', '.', regex=False)
     df['Salario'] = pd.to_numeric(df['Salario'], errors='coerce')
-    
+
     df.drop(columns='Salario_Simbolo', inplace=True)
     df.drop(columns='Salario', inplace=True)
     df.rename(columns={'Salario_Valor': 'Salario'}, inplace=True)
@@ -59,15 +59,12 @@ def procesar_datos_computrabajo(csv_path):
         'liderazgo', 'responsabilidad', 'creatividad', 'resolución de problemas',
         'orientación al cliente', 'pensamiento crítico'
     ]
-    
     for skill in hard_skills:
         col = f"hard_{skill.replace('/', '_').replace(' ', '_')}"
         df[col] = df['texto_skills'].str.contains(rf'\b{re.escape(skill)}\b', regex=True)
-
     for skill in soft_skills:
         col = f"soft_{skill.replace(' ', '_')}"
         df[col] = df['texto_skills'].str.contains(rf'\b{re.escape(skill)}\b', regex=True)
-
 
     # CLASIFICACIÓN DE CARRERA
     df['Subtítulo'] = df['Subtítulo'].astype(str).str.lower()
@@ -134,7 +131,7 @@ def procesar_datos_computrabajo(csv_path):
     # Guardar para estadísticas
     df_final = df[columnas_finales].copy()
     columnas_detectadas = [col for col in df.columns if col.startswith("hard_") or col.startswith("soft_")]
-    
+
     resumen = {
         "originales": len(df_original),
         "eliminados": len(df_original) - len(df),
@@ -147,65 +144,7 @@ def procesar_datos_computrabajo(csv_path):
     }
 
     # Preparar datos para mostrar
-    preview_no_ingenieria = registros_no_ingenieria.fillna('').astype(str).to_dict(orient='records')
-    preview_no_clasificados = registros_no_clasificados.fillna('').astype(str).to_dict(orient='records')
-    preview_antes = df_original.fillna('').astype(str).to_dict(orient='records')
-    preview_despues = df_final.fillna('').to_dict(orient='records')
-    
-    return (
-        df_final, resumen, columnas_detectadas, preview_antes,
-        preview_despues, preview_no_ingenieria,
-        preview_no_clasificados
-    )
+    preview_antes = df_original.head(5).fillna('').astype(str).to_dict(orient='records')
+    preview_despues = df_final.head(5).fillna('').to_dict(orient='records')
 
-# class HabilidadesExtractor(BaseEstimator, TransformerMixin):
-#     """
-#     Clase para extracción de habilidades compatible con scikit-learn
-#     """
-#     def __init__(self):
-#         # Definición de habilidades (las mismas que usas actualmente)
-#         self.hard_skills = [
-#             'python', 'java', 'sql', '_net', 'javascript', 'html', 'css', 'django', 'flask', 'react', 'angular',
-#             'node', 'power bi', 'sap', 'aws', 'azure', 'git', 'github', 'ci/cd', 'linux', 'docker', 'kubernetes',
-#             'etl', 'big data', 'data lake', 'postgresql', 'mysql', 'nosql', 'mongodb', 'cloud', 'bash', 'jira',
-#             'excel', 'autocad', 'r', 'office', 'google_workspace', 'matlab', 'project', 'solidworks', 'Manejo_de_datos',
-#             'seguridad', 'desarrollo_web', 'gestión_proyectos', 'Mejora_procesos'
-#         ]
-#         self.soft_skills = [
-#             'comunicación', 'trabajo en equipo', 'proactividad', 'compromiso', 'adaptabilidad',
-#             'liderazgo', 'responsabilidad', 'creatividad', 'resolución de problemas',
-#             'orientación al cliente', 'pensamiento crítico'
-#         ]
-        
-#         # Precompilar expresiones regulares para mejor performance
-#         self.regex_cache = {}
-#         for skill in self.hard_skills + self.soft_skills:
-#             self.regex_cache[skill] = re.compile(rf'\b{re.escape(skill)}\b', re.IGNORECASE)
-
-#     def fit(self, X, y=None):
-#         return self
-    
-#     def transform(self, X):
-#         """
-#         Transforma texto en características de habilidades
-#         X: DataFrame con columna 'texto_skills' o similar
-#         """
-#         if isinstance(X, pd.DataFrame):
-#             textos = X['texto_skills'] if 'texto_skills' in X.columns else X.iloc[:, 0]
-#         else:
-#             textos = X
-            
-#         resultados = []
-#         for texto in textos:
-#             fila = {}
-#             # Procesar hard skills
-#             for skill in self.hard_skills:
-#                 col_name = f"hard_{skill.replace('/', '_').replace(' ', '_')}"
-#                 fila[col_name] = int(self.regex_cache[skill].search(str(texto)) is not None)
-#             # Procesar soft skills
-#             for skill in self.soft_skills:
-#                 col_name = f"soft_{skill.replace(' ', '_')}"
-#                 fila[col_name] = int(self.regex_cache[skill].search(str(texto)) is not None)
-#             resultados.append(fila)
-        
-#         return pd.DataFrame(resultados)
+    return df_final, resumen, columnas_detectadas, preview_antes, preview_despues

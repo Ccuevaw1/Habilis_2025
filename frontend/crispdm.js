@@ -52,6 +52,25 @@ const btnUpload = document.getElementById("btnUpload");
 //   });
 // }
 
+// function renderTablaDesdeObjeto(datos, tablaId) {
+//   if (!Array.isArray(datos) || datos.length === 0) return;
+
+//   const tabla = document.getElementById(tablaId);
+//   const columnas = Object.keys(datos[0]);
+
+//   // Crear encabezado
+//   tabla.innerHTML = `
+//     <thead>
+//       <tr>${columnas.map(col => `<th>${col}</th>`).join('')}</tr>
+//     </thead>
+//     <tbody>
+//       ${datos.map(row =>
+//         `<tr>${columnas.map(col => `<td>${row[col]}</td>`).join('')}</tr>`
+//       ).join('')}
+//     </tbody>
+//   `;
+// }
+
 // Deshabilitar botón de procesar inicialmente
 const btnProcesar = document.getElementById("btnProcesar");
 btnProcesar.disabled = true;
@@ -82,7 +101,7 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
     const data = await response.json();
     alert("✅ CSV cargado correctamente. ¡Listo para procesar!");
 
-// Guardamos los datos globalmente para usarlos despuésAdd commentMore actions
+    // Guardamos los datos globalmente para usarlos después
     window.datosProcesados = data;
 
     // Habilitamos el botón
@@ -159,30 +178,3 @@ function renderTabla(idTabla, datos) {
   tabla.innerHTML = thead + tbody;
 }
 
-
-
-// fetch("https://habilis2025-production.up.railway.app/registros-eliminados")
-//   .then(res => res.json())
-//   .then(data => {
-//     renderTablaDesdeObjeto(data.no_ingenieria, "tabla-no-ingenieria");
-//     renderTablaDesdeObjeto(data.no_clasificados, "tabla-no-clasificados");
-//   });
-
-// function renderTablaDesdeObjeto(datos, tablaId) {
-//   if (!Array.isArray(datos) || datos.length === 0) return;
-
-//   const tabla = document.getElementById(tablaId);
-//   const columnas = Object.keys(datos[0]);
-
-//   // Crear encabezado
-//   tabla.innerHTML = `
-//     <thead>
-//       <tr>${columnas.map(col => `<th>${col}</th>`).join('')}</tr>
-//     </thead>
-//     <tbody>
-//       ${datos.map(row =>
-//         `<tr>${columnas.map(col => `<td>${row[col]}</td>`).join('')}</tr>`
-//       ).join('')}
-//     </tbody>
-//   `;
-// }

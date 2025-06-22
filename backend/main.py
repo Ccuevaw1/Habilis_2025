@@ -313,7 +313,7 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
                 workday=row.get("workday"),
                 modality=row.get("modality"),
                 salary=row.get("salary"),
-                **{col: int(str(row[col]).lower() in ["1", "true", "t"]) for col in columnas_detectadas}
+                **{col: int(row.get(col, 0)) if pd.notnull(row.get(col)) else 0 for col in columnas_detectadas}
             )
             db.add(habilidad)
         db.commit()
