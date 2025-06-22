@@ -338,32 +338,32 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
             "detalle": error_trace  # Opcional para debug
         }
 
-# @app.post("/tiempo-carga/")
-# def registrar_tiempo_carga(
-#     carrera: str = Query(...),
-#     inicio: float = Query(...),  # UNIX timestamp desde el frontend
-#     db: Session = Depends(get_db)
-# ):
-#     # Convertir timestamp a datetime con zona horaria UTC
-#     inicio_dt = datetime.fromtimestamp(inicio, timezone.utc)
-#     fin_dt = datetime.now(timezone.utc)
-#     duracion = round((fin_dt - inicio_dt).total_seconds(), 4)
+@app.post("/tiempo-carga/")
+def registrar_tiempo_carga(
+    carrera: str = Query(...),
+    inicio: float = Query(...),  # UNIX timestamp desde el frontend
+    db: Session = Depends(get_db)
+):
+    # Convertir timestamp a datetime con zona horaria UTC
+    inicio_dt = datetime.fromtimestamp(inicio, timezone.utc)
+    fin_dt = datetime.now(timezone.utc)
+    duracion = round((fin_dt - inicio_dt).total_seconds(), 4)
 
-#     nuevo_log = TiempoCarga(
-#         carrera=carrera,
-#         inicio=inicio_dt,
-#         fin=fin_dt,
-#         tiempo_segundos=duracion
-#     )
+    nuevo_log = TiempoCarga(
+        carrera=carrera,
+        inicio=inicio_dt,
+        fin=fin_dt,
+        tiempo_segundos=duracion
+    )
 
-#     db.add(nuevo_log)
-#     db.commit()
+    db.add(nuevo_log)
+    db.commit()
 
-#     return {
-#         "mensaje": f"Tiempo registrado: {duracion} segundos",
-#         "inicio": inicio_dt.isoformat(),
-#         "fin": fin_dt.isoformat()
-#     }
+    return {
+        "mensaje": f"Tiempo registrado: {duracion} segundos",
+        "inicio": inicio_dt.isoformat(),
+        "fin": fin_dt.isoformat()
+    }
 
 @app.get("/registros-eliminados")
 def obtener_registros_eliminados():
