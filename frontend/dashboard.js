@@ -112,10 +112,13 @@ if (document.getElementById('graficoTecnicas')) {
         }
         });
         // Registrar tiempo de carga
-        registrarTiempoCarga(carrera, inicioTiempo)
-          .then(res => res.json())
-          .then(data => console.log(data.mensaje))
-          .catch(err => console.warn("No se pudo registrar el tiempo:", err));
+        const finTiempo = Date.now();
+        fetch(`https://habilis2025-production.up.railway.app/tiempo-carga/?carrera=${encodeURIComponent(carrera)}&inicio=${inicioTiempo/1000}`, {
+          method: "POST"
+          })
+        .then(res => res.json())
+        .then(data => console.log(data.mensaje))
+        .catch(err => console.warn("No se pudo registrar el tiempo:", err));
       });
   });
 }
