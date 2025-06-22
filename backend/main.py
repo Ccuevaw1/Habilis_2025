@@ -146,7 +146,7 @@ async def verificar_modelo(file: UploadFile = File(...)):
             df_real = pd.read_csv(temp_manual_path, sep=';', encoding='utf-8')
         except UnicodeDecodeError:
             df_real = pd.read_csv(temp_manual_path, sep=';', encoding='latin1')
-        
+
         # Generar predicciones usando la función de minería
         df_predicho = procesar_datos_computrabajo(temp_manual_path)
 
@@ -239,7 +239,7 @@ def estadisticas_salarios(carrera: str = Query(..., description="Nombre de la ca
 
     df["salario_numerico"] = df["salary"].apply(limpiar_salario)
     df = df.dropna(subset=["salario_numerico"])
-    
+
     # Filtrar solo salarios > 1500
     df = df[df["salario_numerico"] > 1500]
 
@@ -266,7 +266,7 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
             shutil.copyfileobj(file.file, f)
 
         # Procesar archivo CSV (mineria.py)
-        df_final, resumen, columnas_detectadas, preview_antes, preview_despues, preview_no_ingenieria, preview_no_clasificados = procesar_datos_computrabajo(path_csv)
+        df_final, resumen, columnas_detectadas, preview_antes, preview_despues = procesar_datos_computrabajo(path_csv)
 
        # Asegurar que ambos previews sean listas válidas (ya vienen como dicts)
         if not isinstance(preview_antes, list):
@@ -294,13 +294,6 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
             "habilidades": resumen["habilidades"]
         }
 
-        # Guardar registros eliminados como archivos .json
-        with open("data/registros_no_ingenieria.json", "w", encoding="utf-8") as f1:
-            json.dump(preview_no_ingenieria, f1, ensure_ascii=False, indent=2)
-
-        with open("data/registros_no_clasificados.json", "w", encoding="utf-8") as f2:
-            json.dump(preview_no_clasificados, f2, ensure_ascii=False, indent=2)
-
         # Insertar datos procesados en BD
         db = SessionLocal()
         db.query(Habilidad).delete()
@@ -313,7 +306,7 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
                 workday=row.get("workday"),
                 modality=row.get("modality"),
                 salary=row.get("salary"),
-                **{col: int(row.get(col, 0)) if pd.notnull(row.get(col)) else 0 for col in columnas_detectadas}
+                **{col: int(row[col]) for col in columnas_detectadas}
             )
             db.add(habilidad)
         db.commit()
@@ -323,9 +316,7 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
             "message": f"{len(df_final)} registros procesados y guardados exitosamente.",
             "resumen": resumen,
             "preview_antes": preview_antes,
-            "preview_despues": preview_despues,
-            "no_ingenieria": preview_no_ingenieria,
-            "no_clasificados": preview_no_clasificados
+            "preview_despues": preview_despues
         }
 
     except Exception as e:
@@ -335,7 +326,7 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
         return {
             "message": "❌ Error al procesar el archivo.",
             "error": str(e),
-            "detalle": error_trace  
+            "detalle": error_trace  # Opcional para debug
         }
 
 @app.post("/tiempo-carga/")
