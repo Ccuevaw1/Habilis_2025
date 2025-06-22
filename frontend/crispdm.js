@@ -122,6 +122,7 @@ btnProcesar.addEventListener("click", () => {
   document.getElementById("preparacion-datos-container").style.display = "block";
   document.getElementById("preview-modelado-container").style.display = "block";
   document.getElementById("precision-container").style.display = "block";
+  document.getElementById("no-ingenieria-container").style.display = "block";
 
   if (document.getElementById("no-ingenieria-container")) {
     document.getElementById("no-ingenieria-container").style.display = "block";
@@ -144,8 +145,17 @@ btnProcesar.addEventListener("click", () => {
   document.getElementById("tabla-antes").innerHTML = generarTablaHTMLCruda(datos.preview_antes);
   document.getElementById("tabla-despues").innerHTML = generarTablaHTML(datos.preview_despues);
 
-  if (datos.no_ingenieria) renderTabla("tabla-no-ingenieria", datos.no_ingenieria);
-  if (datos.no_clasificados) renderTabla("tabla-no-clasificados", datos.no_clasificados);
+  if (datos.no_ingenieria && datos.no_ingenieria.length > 0) {
+    renderTabla("tabla-no-ingenieria", datos.no_ingenieria);
+  } else {
+    document.getElementById("tabla-no-ingenieria").innerHTML = "<tr><td>No hay registros no relacionados a ingeniería</td></tr>";
+  }
+
+  if (datos.no_clasificados && datos.no_clasificados.length > 0) {
+    renderTabla("tabla-no-clasificados", datos.no_clasificados);
+  } else {
+    document.getElementById("tabla-no-clasificados").innerHTML = "<tr><td>No hay registros no clasificados</td></tr>";
+  }
 
   fetch("https://habilis2025-production.up.railway.app/precision-mineria")
     .then(r => r.json())
