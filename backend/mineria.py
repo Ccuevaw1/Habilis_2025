@@ -73,7 +73,7 @@ def procesar_datos_computrabajo(csv_path):
     # CLASIFICACIÓN DE CARRERA
     df['Subtítulo'] = df['Subtítulo'].astype(str).str.lower()
     carrera_keywords = {
-        'Ingeniería de Sistemas': ['network engineer', 'ingeniería de sistemas', 'ing. sistemas', 'sistemas', 'informática', 'python', 'java', 'sql'],
+        'Ingeniería de Sistemas': ['network engineer', 'ingeniería de sistemas', 'ing. sistemas', 'sistemas', 'informática', 'ciencia de datos', 'python', 'java', 'sql'],
         'Ingeniería de Minas': ['ingeniería de minas', 'minería', 'voladura', 'mina', 'unidad minera'],
         'Ingeniería Industrial': ['ingeniería industrial', 'procesos', 'gestión de calidad', 'producción', 'logística'],
         'Ingeniería Civil': ['ingeniería civil', 'civil', 'autocad', 'estructuras', 'obra', 'planos'],
