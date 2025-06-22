@@ -45,7 +45,6 @@ def procesar_datos_computrabajo(csv_path):
     registros_no_ingenieria = df_original[~filtro].copy()
     registros_no_ingenieria.to_json("data/registros_no_ingenieria.json", orient="records", force_ascii=False)
 
-
     # UNIFICAR TEXTO PARA MINERÍA DE HABILIDADES
     df['Descripción'] = df['Descripción'].str.replace(r'[\r\n]+', ' ', regex=True)
     df['Requerimientos'] = df['Requerimientos'].astype(str).str.replace(r'[\r\n]+', ' ', regex=True)
@@ -79,20 +78,20 @@ def procesar_datos_computrabajo(csv_path):
         'Ingeniería Industrial': ['ingeniería industrial', 'procesos', 'gestión de calidad', 'producción', 'logística'],
         'Ingeniería Civil': ['ingeniería civil', 'civil', 'autocad', 'estructuras', 'obra', 'planos'],
         'Ingeniería Ambiental': ['ingeniería ambiental', 'medio ambiente', 'impacto ambiental', 'residuos'],
-        'Ingeniería Agrónoma': ['ingeniería agrónoma', 'cultivos', 'agronomía', 'ingeniero agrónomo' 'agroindustria', 'agrícola']
+        'Ingeniería Agrónoma': ['ingeniería agrónoma', 'cultivos', 'agronomía', 'ingeniero agrónomo', 'agroindustria', 'agrícola']
     }
 
     def detectar_carrera_por_campos(Título, Subtítulo, Descripcion, Requerimientos):
         texto_total = f"{Título} {Subtítulo} {Descripcion} {Requerimientos}".lower()
         
-        puntajes = {c: sum(1 for kw in kws if kw in texto_total) for c, kws in carrera_keywords.items()}
+        puntajes = {c: sum(1 for kw in kws if re.search(rf'\b{re.escape(kw)}\b', texto_total)) for c, kws in carrera_keywords.items()}
         
         if any(puntajes.values()):
             return max(puntajes, key=puntajes.get)
         
         if 'ingeniero' in texto_total or 'ing.' in texto_total:
             for carrera, kws in carrera_keywords.items():
-                if any(kw in texto_total for kw in kws):
+                if any(re.search(rf'\b{re.escape(kw)}\b', texto_total) for kw in kws):
                     return carrera
         return 'No clasificado'
 
