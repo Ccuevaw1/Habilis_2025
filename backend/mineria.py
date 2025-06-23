@@ -101,6 +101,8 @@ def procesar_datos_computrabajo(csv_path):
     df_con_carrera = df.copy()
     df = df[df['Carrera Detectada'] != 'No clasificado'].copy()
     registros_no_clasificados = df_con_carrera[df_con_carrera['Carrera Detectada'] == 'No clasificado'].copy()
+    columnas_habilidades = [col for col in registros_no_clasificados.columns if col.startswith("hard_") or col.startswith("soft_")]
+    registros_no_clasificados = registros_no_clasificados.drop(columns=columnas_habilidades)
     registros_no_clasificados.to_json("data/registros_no_clasificados.json", orient="records", force_ascii=False)
 
     # LIMPIEZA DE CARACTERES
