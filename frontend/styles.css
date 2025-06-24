@@ -386,3 +386,29 @@ details summary {
 details[open] summary {
   background-color: #e0e0ff;
 }
+
+/* Estilos comunes para enlaces de navegación */
+.enlace-crispdm,
+.breadcrumb {
+  margin: 1rem 2rem; /* separación superior y lateral */
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.enlace-crispdm a,
+.breadcrumb a {
+  color: #4a4e69;
+  text-decoration: none;
+  border-bottom: 1px dashed #4a4e69;
+  transition: all 0.2s ease-in-out;
+}
+
+.enlace-crispdm a:hover,
+.breadcrumb a:hover {
+  color: #2f3e46;
+  border-bottom: 1px solid #2f3e46;
+  background-color: #edf2f4;
+  padding: 0.1rem 0.4rem;
+  border-radius: 5px;
+}
