@@ -59,7 +59,7 @@ btnProcesar.addEventListener("click", () => {
   document.getElementById("preview-modelado-container").style.display = "block";
   document.getElementById("porcentaje-carreras-container").style.display = "block";
   //document.getElementById("precision-container").style.display = "block";
-  document.getElementById("no-ingenieria-container").style.display = "block";
+  //document.getElementById("no-ingenieria-container").style.display = "block";
 
   if (document.getElementById("no-ingenieria-container")) {
     document.getElementById("no-ingenieria-container").style.display = "block";
@@ -111,6 +111,37 @@ btnProcesar.addEventListener("click", () => {
     `;
   }
 
+  // REGISTROS DETALLADOS POR CARRERA
+  document.getElementById("detalles-carrera-container").style.display = "block";
+
+  const agrupados = {};
+  for (const reg of registros) {
+    const carrera = reg.career || 'Sin clasificar';
+    if (!agrupados[carrera]) agrupados[carrera] = [];
+    agrupados[carrera].push(reg);
+  }
+
+  const contenedor = document.getElementById("tablas-carreras-detalle");
+  contenedor.innerHTML = "";  // Limpiar anteriores si los hubiera
+
+  for (const [carrera, filas] of Object.entries(agrupados)) {
+    const tablaHTML = generarTablaHTML(filas);  // tabla en formato HTML
+
+    const details = document.createElement("details");
+    const summary = document.createElement("summary");
+    summary.textContent = `${carrera} (${filas.length} registros)`;
+    summary.style.fontWeight = "bold";
+    summary.style.margin = "1rem 0";
+
+    details.appendChild(summary);
+
+    const contenedorTabla = document.createElement("div");
+    contenedorTabla.innerHTML = tablaHTML;
+    contenedorTabla.className = "tabla-seccion";
+
+    details.appendChild(contenedorTabla);
+    contenedor.appendChild(details);
+  }
 
   if (datos.no_ingenieria && datos.no_ingenieria.length > 0) {
     renderTabla("tabla-no-ingenieria", datos.no_ingenieria);

@@ -373,3 +373,16 @@ canvas {
 .tabla-scroll-container.scrolling:after {
   opacity: 1;
 }
+
+details summary {
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 0.5rem;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+details[open] summary {
+  background-color: #e0e0ff;
+}
