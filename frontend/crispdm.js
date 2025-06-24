@@ -38,7 +38,7 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
     window.datosProcesados = data;
 
     btnProcesar.disabled = false;
-    document.getElementById("btnVerificar").style.display = "inline-block";
+    //document.getElementById("btnVerificar").style.display = "inline-block";
 
     // Habilitamos el botón
     btnProcesar.disabled = false;
