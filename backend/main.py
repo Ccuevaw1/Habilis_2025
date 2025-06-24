@@ -182,6 +182,27 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
         path_csv = "data/upload.csv"
         with open(path_csv, "wb") as f:
             shutil.copyfileobj(file.file, f)
+        
+        # 1. VALIDAR ESTRUCTURA DEL CSV ANTES DE PROCESAR
+        required_columns = {
+            'title', 'company', 'location', 'workday', 
+            'modality', 'salary', 'description'
+        }
+        
+        # Leer solo los encabezados del CSV
+        with open(path_csv, 'r', encoding='utf-8') as f:
+            first_line = f.readline().strip()
+            csv_columns = set(col.strip().lower() for col in first_line.split(','))
+        
+        # Verificar si faltan columnas requeridas
+        missing_columns = required_columns - csv_columns
+        if missing_columns:
+            return {
+                "message": f"❌ Estructura CSV inválida. Faltan columnas requeridas: {', '.join(missing_columns)}",
+                "error": "Estructura CSV inadecuada",
+                "required_columns": list(required_columns),
+                "received_columns": list(csv_columns)
+            }
 
         # Procesar archivo CSV (mineria.py)
         df_final, resumen, columnas_detectadas, preview_antes, preview_despues, preview_no_ingenieria, preview_no_clasificados = procesar_datos_computrabajo(path_csv)

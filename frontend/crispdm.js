@@ -32,11 +32,19 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
     }
 
     const data = await response.json();
+    
+    // Manejar caso de estructura inválida
+    if (data.error === "Estructura CSV inadecuada") {
+      let errorMsg = data.message + "\n\n";
+      errorMsg += "Columnas requeridas:\n" + data.required_columns.join(', ') + "\n\n";
+      errorMsg += "Columnas recibidas:\n" + data.received_columns.join(', ');
+      
+      alert(errorMsg);
+      return;
+    }
+
     alert("✅ CSV cargado correctamente. ¡Listo para procesar!");
-
-    // Guardamos los datos globalmente para usarlos después
     window.datosProcesados = data;
-
     btnProcesar.disabled = false;
 
   } catch (error) {
@@ -47,10 +55,7 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
 
 // Mostrar resultados solo al hacer clic en "Procesar"
 btnProcesar.addEventListener("click", () => {
-  if (!window.datosProcesados) {
-    mostrarMensajeError("⚠️ Primero debes subir un archivo CSV antes de procesar.");
-    return;
-  }
+  if (!window.datosProcesados) return;
 
   const datos = window.datosProcesados;
 
@@ -178,15 +183,5 @@ function renderTabla(idTabla, datos) {
   tbody += "</tbody>";
 
   tabla.innerHTML = thead + tbody;
-}
-
-function mostrarMensajeError(mensaje) {
-  const div = document.createElement("div");
-  div.textContent = mensaje;
-  div.className = "alert-error";
-
-  document.body.prepend(div);
-
-  setTimeout(() => div.remove(), 4000);
 }
 
