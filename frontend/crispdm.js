@@ -37,7 +37,7 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
     // Guardamos los datos globalmente para usarlos después
     window.datosProcesados = data;
 
-    btnProcesar.disabled = false;
+    btnProcesar.style.display = "inline-block";
 
   } catch (error) {
     console.error("Error al subir CSV:", error);
