@@ -7,8 +7,10 @@ from mineria import procesar_datos_computrabajo
 from sklearn.metrics import accuracy_score
 from models.tiempo import TiempoCarga
 from datetime import datetime, timezone
+from difflib import SequenceMatcher
 from io import BytesIO
 import pandas as pd
+import unicodedata
 from pydantic import BaseModel
 from unidecode import unidecode
 import shutil
@@ -257,79 +259,82 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
 @app.post("/precision-mineria")
 async def calcular_precision(file: UploadFile = File(...)):
     try:
-        # Cargar el CSV manual
+        # Leer CSV manual
         contenido = await file.read()
         try:
-            df_manual = pd.read_csv(BytesIO(contenido), encoding='utf-8', sep=',', quotechar='"')
-        except UnicodeDecodeError:
-            df_manual = pd.read_csv(BytesIO(contenido), encoding='latin1', sep=',', quotechar='"')
-        # Cargar datos procesados del sistema
+            df_manual = pd.read_csv(BytesIO(contenido), encoding='utf-8', sep=",", quotechar='"')
+        except:
+            df_manual = pd.read_csv(BytesIO(contenido), encoding='latin1', sep=",", quotechar='"')
+
         df_sistema = pd.read_csv("data/datos_procesados.csv")
 
-        # Asegurar que haya columna clave para emparejar (ej. título)
+        # Validar columna 'title'
         if "title" not in df_manual.columns or "title" not in df_sistema.columns:
-            return {"error": "Ambos archivos deben tener la columna 'title' para emparejar los registros."}
+            return {"error": "Ambos archivos deben tener la columna 'title'."}
 
-        # Establecer columnas de habilidades
-        # Establecer columnas de habilidades que estén en ambos archivos
-        columnas_habilidad_manual = set([col for col in df_manual.columns if col.startswith("hard_") or col.startswith("soft_")])
-        columnas_habilidad_sistema = set([col for col in df_sistema.columns if col.startswith("hard_") or col.startswith("soft_")])
-        columnas_habilidad = list(columnas_habilidad_manual & columnas_habilidad_sistema)
+        # Normalizar texto (títulos) eliminando tildes, pasando a minúscula
+        def normalizar_texto(texto):
+            texto = str(texto).lower().strip()
+            return ''.join(c for c in unicodedata.normalize('NFD', texto) if unicodedata.category(c) != 'Mn')
 
-        if not columnas_habilidad:
-            return {"error": "No hay columnas de habilidades en común entre el archivo manual y el procesado."}
+        df_manual["title_norm"] = df_manual["title"].apply(normalizar_texto)
+        df_sistema["title_norm"] = df_sistema["title"].apply(normalizar_texto)
 
-        if not columnas_habilidad:
-            return {"error": "No se detectaron columnas de habilidades en el archivo manual."}
-
-        # Normalizar títulos
-        df_manual["title"] = df_manual["title"].astype(str).str.lower().str.strip()
-        df_sistema["title"] = df_sistema["title"].astype(str).str.lower().str.strip()
-
-        # Realizar coincidencia parcial en lugar de merge directo
-        def encontrar_coincidencia_parcial(titulo_manual, titulos_sistema):
+        # Emparejar por similitud (máxima coincidencia por título manual)
+        def obtener_mejor_match(titulo_manual, titulos_sistema):
+            max_ratio = 0
+            mejor = None
             for titulo_sistema in titulos_sistema:
-                if titulo_manual in titulo_sistema:
-                    return titulo_sistema
-            return None
+                ratio = SequenceMatcher(None, titulo_manual, titulo_sistema).ratio()
+                if ratio > max_ratio and ratio > 0.75:
+                    max_ratio = ratio
+                    mejor = titulo_sistema
+            return mejor
 
-        df_manual["match_title"] = df_manual["title"].apply(lambda t: encontrar_coincidencia_parcial(t, df_sistema["title"].tolist()))
+        df_manual["match_title"] = df_manual["title_norm"].apply(lambda t: obtener_mejor_match(t, df_sistema["title_norm"].tolist()))
 
-        # Eliminar los que no encontraron match
         df_manual_matched = df_manual.dropna(subset=["match_title"])
-        df_sistema_matched = df_sistema[df_sistema["title"].isin(df_manual_matched["match_title"])]
+        df_sistema_matched = df_sistema[df_sistema["title_norm"].isin(df_manual_matched["match_title"])]
 
-        # Ahora hacer merge entre df_manual_matched y df_sistema_matched
+        if df_manual_matched.empty or df_sistema_matched.empty:
+            return {"error": "No se encontraron coincidencias suficientes entre títulos."}
+
+        # Merge
         df_merged = pd.merge(
             df_manual_matched,
             df_sistema_matched,
             left_on="match_title",
-            right_on="title",
+            right_on="title_norm",
             suffixes=("_real", "_detectado")
         )
 
-        if df_merged.empty:
-            return {"error": "No se encontraron coincidencias de título entre el CSV manual y el procesado."}
+        # Detectar columnas de habilidad en común
+        cols_manual = set([col for col in df_manual.columns if col.startswith("hard_") or col.startswith("soft_")])
+        cols_sistema = set([col for col in df_sistema.columns if col.startswith("hard_") or col.startswith("soft_")])
+        columnas_habilidad = list(cols_manual & cols_sistema)
 
-        # Calcular precisión por fila (proporción de aciertos por cada habilidad)
+        if not columnas_habilidad:
+            return {"error": "No hay columnas de habilidades en común para comparar."}
+
+        # Calcular precisión
         precisiones = []
         for _, row in df_merged.iterrows():
             aciertos = 0
             total = 0
             for col in columnas_habilidad:
-                real = row.get(f"{col}_real")
-                detectado = row.get(f"{col}_detectado")
-                if pd.isna(real) or pd.isna(detectado):
+                val_real = row.get(f"{col}_real")
+                val_detectado = row.get(f"{col}_detectado")
+                if pd.isna(val_real) or pd.isna(val_detectado):
                     continue
                 total += 1
-                if int(real) == int(detectado):
+                if int(val_real) == int(val_detectado):
                     aciertos += 1
             if total > 0:
                 precisiones.append(aciertos / total)
 
         precision_promedio = round(sum(precisiones) / len(precisiones), 4) if precisiones else 0
 
-        # distribución por carrera
+        # Distribución final por carrera (solo sistema)
         distribucion = df_sistema["career"].value_counts().to_dict() if "career" in df_sistema.columns else {}
 
         return {
@@ -340,10 +345,7 @@ async def calcular_precision(file: UploadFile = File(...)):
 
     except Exception as e:
         import traceback
-        return {
-            "error": str(e),
-            "detalle": traceback.format_exc()
-        }
+        return {"error": str(e), "detalle": traceback.format_exc()}
 
 class TiempoCargaRequest(BaseModel):
     carrera: str
