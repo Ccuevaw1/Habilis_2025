@@ -47,7 +47,10 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
 
 // Mostrar resultados solo al hacer clic en "Procesar"
 btnProcesar.addEventListener("click", () => {
-  if (!window.datosProcesados) return;
+  if (!window.datosProcesados) {
+    alert("⚠️ Primero debes subir un archivo CSV antes de procesar.");
+    return;
+  }
 
   const datos = window.datosProcesados;
 
