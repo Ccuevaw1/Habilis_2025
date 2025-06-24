@@ -258,7 +258,7 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
         error_trace = traceback.format_exc()
         print("❌ ERROR DETALLADO:", error_trace)
         return {
-            "message": "❌ Error al procesar el archivo.",
+            "message": "❌ Error al procesar el archivo. Formato Incorrecto o datos inválidos.",
             "error": str(e),
             "detalle": error_trace 
         }
