@@ -92,62 +92,62 @@ btnProcesar.addEventListener("click", () => {
   } else {
     document.getElementById("tabla-no-clasificados").innerHTML = "<tr><td>No hay registros no clasificados</td></tr>";
   }
-});
 
-// Mostrar evaluación por carrera
-document.getElementById("evaluacion-container").style.display = "block";
+  // Mostrar evaluación por carrera
+  document.getElementById("evaluacion-container").style.display = "block";
 
-// Fetch a evaluación-modelo
-fetch("https://habilis2025-production.up.railway.app/evaluacion-modelo")
-  .then(res => res.json())
-  .then(data => {
-    if (data.error) {
-      document.getElementById("tabla-resumen-carreras").innerHTML = `<tr><td>${data.error}</td></tr>`;
-      return;
-    }
+  // Fetch a evaluación-modelo
+  fetch("https://habilis2025-production.up.railway.app/evaluacion-modelo")
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) {
+        document.getElementById("tabla-resumen-carreras").innerHTML = `<tr><td>${data.error}</td></tr>`;
+        return;
+      }
 
-    // 🟢 Resumen por carrera
-    const resumen = data.resumen_por_carrera;
-    let htmlResumen = `
-      <thead><tr><th>Carrera</th><th>Registros</th><th>Porcentaje</th></tr></thead>
-      <tbody>
-        ${resumen.map(row => `
-          <tr>
-            <td>${row.carrera}</td>
-            <td>${row.registros}</td>
-            <td>${row.porcentaje}%</td>
-          </tr>
-        `).join('')}
-      </tbody>
-    `;
-    document.getElementById("tabla-resumen-carreras").innerHTML = htmlResumen;
-
-    // 🟢 Tablas por carrera
-    const detalle = data.detalle_por_carrera;
-    let htmlDetalles = "";
-    for (const carrera in detalle) {
-      const idTabla = `tabla-${carrera.replace(/\s+/g, '-').toLowerCase()}`;
-      htmlDetalles += `
-        <div class="tabla-seccion">
-          <h4>${carrera}</h4>
-          <div class="tabla-scroll-container">
-            <table class="tabla-estilo tabla-procesados" id="${idTabla}"></table>
-          </div>
-        </div>
+      // 🟢 Resumen por carrera
+      const resumen = data.resumen_por_carrera;
+      let htmlResumen = `
+        <thead><tr><th>Carrera</th><th>Registros</th><th>Porcentaje</th></tr></thead>
+        <tbody>
+          ${resumen.map(row => `
+            <tr>
+              <td>${row.carrera}</td>
+              <td>${row.registros}</td>
+              <td>${row.porcentaje}%</td>
+            </tr>
+          `).join('')}
+        </tbody>
       `;
-    }
-    document.getElementById("tablas-detalle-carreras").innerHTML = htmlDetalles;
+      document.getElementById("tabla-resumen-carreras").innerHTML = htmlResumen;
 
-    // 🟢 Render cada tabla con función existente
-    for (const carrera in detalle) {
-      const idTabla = `tabla-${carrera.replace(/\s+/g, '-').toLowerCase()}`;
-      renderTabla(idTabla, detalle[carrera]);
-    }
-  })
-  .catch(err => {
-    console.error("Error al cargar evaluación:", err);
-    document.getElementById("tabla-resumen-carreras").innerHTML = `<tr><td>Error al obtener datos de evaluación</td></tr>`;
-  });
+      // 🟢 Tablas por carrera
+      const detalle = data.detalle_por_carrera;
+      let htmlDetalles = "";
+      for (const carrera in detalle) {
+        const idTabla = `tabla-${carrera.replace(/\s+/g, '-').toLowerCase()}`;
+        htmlDetalles += `
+          <div class="tabla-seccion">
+            <h4>${carrera}</h4>
+            <div class="tabla-scroll-container">
+              <table class="tabla-estilo tabla-procesados" id="${idTabla}"></table>
+            </div>
+          </div>
+        `;
+      }
+      document.getElementById("tablas-detalle-carreras").innerHTML = htmlDetalles;
+
+      // 🟢 Render cada tabla con función existente
+      for (const carrera in detalle) {
+        const idTabla = `tabla-${carrera.replace(/\s+/g, '-').toLowerCase()}`;
+        renderTabla(idTabla, detalle[carrera]);
+      }
+    })
+    .catch(err => {
+      console.error("Error al cargar evaluación:", err);
+      document.getElementById("tabla-resumen-carreras").innerHTML = `<tr><td>Error al obtener datos de evaluación</td></tr>`;
+    });
+});
 
 // Función para renderizar tabla
 function renderTabla(idTabla, datos) {
