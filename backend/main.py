@@ -271,20 +271,16 @@ async def calcular_precision(file: UploadFile = File(...)):
         if "title" not in df_manual.columns or "title" not in df_sistema.columns:
             return {"error": "Ambos archivos deben tener la columna 'title' para emparejar los registros."}
 
-        # Establecer columnas de habilidades
-        columnas_habilidad = [col for col in df_manual.columns if col.startswith("hard_") or col.startswith("soft_")]
-        if not columnas_habilidad:
-            return {"error": "No se detectaron columnas de habilidades en el archivo manual."}
+        # Detectar columnas de habilidades en archivo manual (sin prefijos)
+        habilidades_real = [col for col in df_manual.columns if col in df_sistema.columns and (col.startswith("hard_") or col.startswith("soft_"))]
 
-        # Normalizar títulos (clave para el merge)
-        df_manual["title"] = df_manual["title"].astype(str).str.lower().str.strip()
-        df_sistema["title"] = df_sistema["title"].astype(str).str.lower().str.strip()
+        if not habilidades_real:
+            return {"error": "No se encontraron columnas de habilidades comunes entre archivo manual y procesado."}
 
-        # Unir por título (asumiendo que los títulos son únicos)
-        df_merged = pd.merge(df_manual, df_sistema, on="title", suffixes=("_real", "_detectado"))
-
-        if df_merged.empty:
-            return {"error": "No se encontraron coincidencias de título entre el CSV manual y el procesado."}
+        # Normalizar valores a 0/1 para comparación
+        for col in habilidades_real:
+            df_manual[col] = df_manual[col].astype(str).str.lower().map({"true": 1, "false": 0}).fillna(0).astype(int)
+            df_sistema[col] = df_sistema[col].fillna(0).astype(int)
 
         # Calcular precisión por fila (proporción de aciertos por cada habilidad)
         precisiones = []
@@ -319,7 +315,6 @@ async def calcular_precision(file: UploadFile = File(...)):
             "error": str(e),
             "detalle": traceback.format_exc()
         }
-
 
 class TiempoCargaRequest(BaseModel):
     carrera: str
