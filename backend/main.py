@@ -184,7 +184,14 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
             shutil.copyfileobj(file.file, f)
 
         # Procesar archivo CSV (mineria.py)
-        df_final, resumen, columnas_detectadas, preview_antes, preview_despues, preview_no_ingenieria, preview_no_clasificados = procesar_datos_computrabajo(path_csv)
+        try:
+            df_final, resumen, columnas_detectadas, preview_antes, preview_despues, preview_no_ingenieria, preview_no_clasificados = procesar_datos_computrabajo(path_csv)
+        except ValueError as e:
+            return {
+                "message": f"❌ Error en contenido del CSV: {str(e)}",
+                "error": "Contenido CSV inválido",
+                "suggestion": "Verifique que el archivo contenga datos válidos en las columnas requeridas"
+            }
 
        # Asegurar que ambos previews sean listas válidas (ya vienen como dicts)
         if not isinstance(preview_antes, list):
@@ -253,7 +260,7 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
         return {
             "message": "❌ Error al procesar el archivo.",
             "error": str(e),
-            "detalle": error_trace  # Opcional para debug
+            "detalle": error_trace 
         }
 
 class TiempoCargaRequest(BaseModel):
