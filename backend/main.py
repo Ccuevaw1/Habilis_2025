@@ -260,10 +260,9 @@ async def calcular_precision(file: UploadFile = File(...)):
         # Cargar el CSV manual
         contenido = await file.read()
         try:
-            df_manual = pd.read_csv(BytesIO(contenido), encoding='utf-8')
+            df_manual = pd.read_csv(BytesIO(contenido), encoding='utf-8', sep=',', quotechar='"')
         except UnicodeDecodeError:
-            df_manual = pd.read_csv(BytesIO(contenido), encoding='latin1')
-
+            df_manual = pd.read_csv(BytesIO(contenido), encoding='latin1', sep=',', quotechar='"')
         # Cargar datos procesados del sistema
         df_sistema = pd.read_csv("data/datos_procesados.csv")
 
@@ -272,7 +271,14 @@ async def calcular_precision(file: UploadFile = File(...)):
             return {"error": "Ambos archivos deben tener la columna 'title' para emparejar los registros."}
 
         # Establecer columnas de habilidades
-        columnas_habilidad = [col for col in df_manual.columns if col.startswith("hard_") or col.startswith("soft_")]
+        # Establecer columnas de habilidades que estén en ambos archivos
+        columnas_habilidad_manual = set([col for col in df_manual.columns if col.startswith("hard_") or col.startswith("soft_")])
+        columnas_habilidad_sistema = set([col for col in df_sistema.columns if col.startswith("hard_") or col.startswith("soft_")])
+        columnas_habilidad = list(columnas_habilidad_manual & columnas_habilidad_sistema)
+
+        if not columnas_habilidad:
+            return {"error": "No hay columnas de habilidades en común entre el archivo manual y el procesado."}
+
         if not columnas_habilidad:
             return {"error": "No se detectaron columnas de habilidades en el archivo manual."}
 
