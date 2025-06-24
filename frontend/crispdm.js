@@ -62,7 +62,6 @@ btnProcesar.addEventListener("click", () => {
   document.getElementById("preparacion-datos-container").style.display = "block";
   document.getElementById("preview-modelado-container").style.display = "block";
   document.getElementById("porcentaje-carreras-container").style.display = "block";
-  //document.getElementById("precision-container").style.display = "block";
   //document.getElementById("no-ingenieria-container").style.display = "block";
 
   if (document.getElementById("no-ingenieria-container")) {
