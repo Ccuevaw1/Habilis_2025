@@ -276,6 +276,10 @@ async def calcular_precision(file: UploadFile = File(...)):
         if not columnas_habilidad:
             return {"error": "No se detectaron columnas de habilidades en el archivo manual."}
 
+        # Normalizar títulos (clave para el merge)
+        df_manual["title"] = df_manual["title"].astype(str).str.lower().str.strip()
+        df_sistema["title"] = df_sistema["title"].astype(str).str.lower().str.strip()
+
         # Unir por título (asumiendo que los títulos son únicos)
         df_merged = pd.merge(df_manual, df_sistema, on="title", suffixes=("_real", "_detectado"))
 
