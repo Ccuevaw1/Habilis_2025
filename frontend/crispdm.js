@@ -37,9 +37,7 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
     // Guardamos los datos globalmente para usarlos después
     window.datosProcesados = data;
 
-    btnProcesar.style.display = "inline-block";
-
-    //document.getElementById("btnVerificar").style.display = "inline-block";
+    btnProcesar.disabled = false;
 
   } catch (error) {
     console.error("Error al subir CSV:", error);
@@ -141,6 +139,7 @@ btnProcesar.addEventListener("click", () => {
     contenedor.appendChild(details);
   }
 
+
   if (datos.no_ingenieria && datos.no_ingenieria.length > 0) {
     renderTabla("tabla-no-ingenieria", datos.no_ingenieria);
   } else {
@@ -152,8 +151,6 @@ btnProcesar.addEventListener("click", () => {
   } else {
     document.getElementById("tabla-no-clasificados").innerHTML = "<tr><td>No hay registros no clasificados</td></tr>";
   }
-
-  btnProcesar.style.display = "none";
 });
 
 // Función para renderizar tabla
