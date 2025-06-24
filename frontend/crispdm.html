@@ -13,10 +13,8 @@
     <div class="barra-navegacion">
       <img src="images/logo.png" alt="Logo Habilits" class="logo" />
       <input type="file" id="inputCsv" accept=".csv" style="display: none;" />
-      <input type="file" id="inputManual" accept=".csv" style="display: none;" />
       <div style="display: flex; gap: 1rem;">
         <button class="btn-subir" id="btnUpload">Subir CSV</button>
-        <button class="btn-subir" id="btnVerificar" style="display: none;">Verificar precisión</button>
       </div>
     </div>
   </header>
@@ -85,10 +83,19 @@
       </div>
     </div>
     
-    <div class="grafico-card" id="precision-container" style="display: none; grid-column: 1 / span 2; grid-row: 7;">
-      <h3>Precisión actual del modelo:</h3>
-      <p id="precision-modelo">Cargando...</p>
-      <div id="conteo-carreras" style="margin-top: 1rem;"></div>
+    <div class="grafico-card" id="evaluacion-container" style="display: none; grid-column: 1 / span 2; grid-row: 7;">
+      <h3>CLASIFICACIÓN POR CARRERA</h3>
+      
+      <!-- Tabla resumen -->
+      <div class="tabla-seccion">
+        <h4>Resumen de registros por carrera</h4>
+        <div class="tabla-scroll-container">
+          <table class="tabla-estilo tabla-procesados" id="tabla-resumen-carreras"></table>
+        </div>
+      </div>
+
+      <!-- Tablas individuales por carrera -->
+      <div id="tablas-detalle-carreras" class="tablas-contenedor"></div>
     </div>
 
   </main>

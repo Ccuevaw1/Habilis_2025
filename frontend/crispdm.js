@@ -94,41 +94,60 @@ btnProcesar.addEventListener("click", () => {
   }
 });
 
-// Lógica para subir CSV manual y verificar precisión real
-document.getElementById("btnVerificar").addEventListener("click", () => {
-  document.getElementById("inputManual").click();
-});
+// Mostrar evaluación por carrera
+document.getElementById("evaluacion-container").style.display = "block";
 
-document.getElementById("inputManual").addEventListener("change", async function () {
-  const file = this.files[0];
-  if (!file) return;
+// Fetch a evaluación-modelo
+fetch("https://habilis2025-production.up.railway.app/evaluacion-modelo")
+  .then(res => res.json())
+  .then(data => {
+    if (data.error) {
+      document.getElementById("tabla-resumen-carreras").innerHTML = `<tr><td>${data.error}</td></tr>`;
+      return;
+    }
 
-  const formData = new FormData();
-  formData.append("file", file);
+    // 🟢 Resumen por carrera
+    const resumen = data.resumen_por_carrera;
+    let htmlResumen = `
+      <thead><tr><th>Carrera</th><th>Registros</th><th>Porcentaje</th></tr></thead>
+      <tbody>
+        ${resumen.map(row => `
+          <tr>
+            <td>${row.carrera}</td>
+            <td>${row.registros}</td>
+            <td>${row.porcentaje}%</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    `;
+    document.getElementById("tabla-resumen-carreras").innerHTML = htmlResumen;
 
-  try {
-    const response = await fetch("https://habilis2025-production.up.railway.app/precision-mineria", {
-      method: "POST",
-      body: formData
-    });
+    // 🟢 Tablas por carrera
+    const detalle = data.detalle_por_carrera;
+    let htmlDetalles = "";
+    for (const carrera in detalle) {
+      const idTabla = `tabla-${carrera.replace(/\s+/g, '-').toLowerCase()}`;
+      htmlDetalles += `
+        <div class="tabla-seccion">
+          <h4>${carrera}</h4>
+          <div class="tabla-scroll-container">
+            <table class="tabla-estilo tabla-procesados" id="${idTabla}"></table>
+          </div>
+        </div>
+      `;
+    }
+    document.getElementById("tablas-detalle-carreras").innerHTML = htmlDetalles;
 
-    const data = await response.json();
-
-    document.getElementById("precision-modelo").textContent = `Precisión calculada: ${(data.precision * 100).toFixed(2)}%`;
-
-    // Mostrar conteo por carrera
-    const conteo = data.distribucion_carreras || {};
-    const divConteo = document.getElementById("conteo-carreras");
-    divConteo.innerHTML = "<h4>Distribución por carrera:</h4><ul>" + 
-      Object.entries(conteo).map(([carrera, cantidad]) =>
-        `<li><strong>${carrera}</strong>: ${cantidad} registros</li>`
-      ).join('') + "</ul>";
-
-  } catch (error) {
-    console.error("Error al verificar precisión:", error);
-    alert("❌ Ocurrió un error al calcular la precisión.");
-  }
-});
+    // 🟢 Render cada tabla con función existente
+    for (const carrera in detalle) {
+      const idTabla = `tabla-${carrera.replace(/\s+/g, '-').toLowerCase()}`;
+      renderTabla(idTabla, detalle[carrera]);
+    }
+  })
+  .catch(err => {
+    console.error("Error al cargar evaluación:", err);
+    document.getElementById("tabla-resumen-carreras").innerHTML = `<tr><td>Error al obtener datos de evaluación</td></tr>`;
+  });
 
 // Función para renderizar tabla
 function renderTabla(idTabla, datos) {
