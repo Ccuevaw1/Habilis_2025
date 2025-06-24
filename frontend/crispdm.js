@@ -37,11 +37,9 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
     // Guardamos los datos globalmente para usarlos después
     window.datosProcesados = data;
 
-    btnProcesar.disabled = false;
-    //document.getElementById("btnVerificar").style.display = "inline-block";
+    btnProcesar.style.display = "inline-block";
 
-    // Habilitamos el botón
-    btnProcesar.disabled = false;
+    //document.getElementById("btnVerificar").style.display = "inline-block";
 
   } catch (error) {
     console.error("Error al subir CSV:", error);
@@ -154,6 +152,8 @@ btnProcesar.addEventListener("click", () => {
   } else {
     document.getElementById("tabla-no-clasificados").innerHTML = "<tr><td>No hay registros no clasificados</td></tr>";
   }
+
+  btnProcesar.style.display = "none";
 });
 
 // Función para renderizar tabla
