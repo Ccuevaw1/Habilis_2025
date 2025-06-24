@@ -44,7 +44,7 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
 
   } catch (error) {
     console.error("Error al subir CSV:", error);
-    alert("❌ Error de conexión al procesar el archivo.");
+    alert("Error de conexión al procesar el archivo.");
   }
 });
 
