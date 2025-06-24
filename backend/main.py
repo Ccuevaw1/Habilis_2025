@@ -255,45 +255,6 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
             "error": str(e),
             "detalle": error_trace  # Opcional para debug
         }
-    
-@app.get("/evaluacion-modelo")
-def evaluacion_modelo():
-    try:
-        df = pd.read_csv("data/datos_procesados.csv")
-
-        if "career" not in df.columns:
-            return {"error": "No se encontró la columna 'career' en los datos procesados."}
-
-        total = len(df)
-        resumen = (
-            df["career"]
-            .value_counts()
-            .reset_index()
-            .rename(columns={"index": "carrera", "career": "registros"})
-        )
-        resumen["porcentaje"] = resumen["registros"].apply(lambda x: round((x / total) * 100, 1))
-
-        # Columnas de habilidades
-        columnas_habilidad = [col for col in df.columns if col.startswith("hard_") or col.startswith("soft_")]
-
-        # Separar registros por carrera
-        detalle = {}
-        for carrera in resumen["carrera"]:
-            subset = df[df["career"] == carrera][["title"] + columnas_habilidad]
-            detalle[carrera] = subset.to_dict(orient="records")
-
-        return {
-            "resumen_por_carrera": resumen.to_dict(orient="records"),
-            "detalle_por_carrera": detalle
-        }
-
-    except Exception as e:
-        import traceback
-        return {
-            "error": str(e),
-            "detalle": traceback.format_exc()
-        }
-
 
 class TiempoCargaRequest(BaseModel):
     carrera: str

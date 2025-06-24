@@ -57,6 +57,7 @@ btnProcesar.addEventListener("click", () => {
 
   document.getElementById("preparacion-datos-container").style.display = "block";
   document.getElementById("preview-modelado-container").style.display = "block";
+  document.getElementById("porcentaje-carreras-container").style.display = "block";
   //document.getElementById("precision-container").style.display = "block";
   document.getElementById("no-ingenieria-container").style.display = "block";
 
@@ -81,6 +82,36 @@ btnProcesar.addEventListener("click", () => {
   document.getElementById("tabla-antes").innerHTML = generarTablaHTMLCruda(datos.preview_antes);
   document.getElementById("tabla-despues").innerHTML = generarTablaHTML(datos.preview_despues);
 
+  // DISTRIBUCIÓN POR CARRERA
+  document.getElementById("porcentaje-carreras-container").style.display = "block";
+
+  const registros = datos.preview_despues;
+  if (registros && registros.length > 0) {
+    const conteoCarreras = {};
+    for (const reg of registros) {
+      const carrera = reg.career || 'Sin clasificar';
+      conteoCarreras[carrera] = (conteoCarreras[carrera] || 0) + 1;
+    }
+
+    const total = registros.length;
+    const filasHTML = Object.entries(conteoCarreras).map(([carrera, cantidad]) => {
+      const porcentaje = ((cantidad / total) * 100).toFixed(1);
+      return `<tr>
+        <td>${carrera}</td>
+        <td>${cantidad}</td>
+        <td>${porcentaje}%</td>
+      </tr>`;
+    });
+
+    document.getElementById("tabla-carreras-porcentaje").innerHTML = `
+      <thead>
+        <tr><th>Carrera</th><th>Registros</th><th>Porcentaje</th></tr>
+      </thead>
+      <tbody>${filasHTML.join("")}</tbody>
+    `;
+  }
+
+
   if (datos.no_ingenieria && datos.no_ingenieria.length > 0) {
     renderTabla("tabla-no-ingenieria", datos.no_ingenieria);
   } else {
@@ -92,61 +123,6 @@ btnProcesar.addEventListener("click", () => {
   } else {
     document.getElementById("tabla-no-clasificados").innerHTML = "<tr><td>No hay registros no clasificados</td></tr>";
   }
-
-  // Mostrar evaluación por carrera
-  document.getElementById("evaluacion-container").style.display = "block";
-
-  // Fetch a evaluación-modelo
-  fetch("https://habilis2025-production.up.railway.app/evaluacion-modelo")
-    .then(res => res.json())
-    .then(data => {
-      if (data.error) {
-        document.getElementById("tabla-resumen-carreras").innerHTML = `<tr><td>${data.error}</td></tr>`;
-        return;
-      }
-
-      // 🟢 Resumen por carrera
-      const resumen = data.resumen_por_carrera;
-      let htmlResumen = `
-        <thead><tr><th>Carrera</th><th>Registros</th><th>Porcentaje</th></tr></thead>
-        <tbody>
-          ${resumen.map(row => `
-            <tr>
-              <td>${row.carrera}</td>
-              <td>${row.registros}</td>
-              <td>${row.porcentaje}%</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      `;
-      document.getElementById("tabla-resumen-carreras").innerHTML = htmlResumen;
-
-      // 🟢 Tablas por carrera
-      const detalle = data.detalle_por_carrera;
-      let htmlDetalles = "";
-      for (const carrera in detalle) {
-        const idTabla = `tabla-${carrera.replace(/\s+/g, '-').toLowerCase()}`;
-        htmlDetalles += `
-          <div class="tabla-seccion">
-            <h4>${carrera}</h4>
-            <div class="tabla-scroll-container">
-              <table class="tabla-estilo tabla-procesados" id="${idTabla}"></table>
-            </div>
-          </div>
-        `;
-      }
-      document.getElementById("tablas-detalle-carreras").innerHTML = htmlDetalles;
-
-      // 🟢 Render cada tabla con función existente
-      for (const carrera in detalle) {
-        const idTabla = `tabla-${carrera.replace(/\s+/g, '-').toLowerCase()}`;
-        renderTabla(idTabla, detalle[carrera]);
-      }
-    })
-    .catch(err => {
-      console.error("Error al cargar evaluación:", err);
-      document.getElementById("tabla-resumen-carreras").innerHTML = `<tr><td>Error al obtener datos de evaluación</td></tr>`;
-    });
 });
 
 // Función para renderizar tabla
