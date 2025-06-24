@@ -26,20 +26,25 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
       body: formData
     });
 
-    if (!response.ok) {
-      alert("Error al subir archivo.");
+    const data = await response.json();
+    
+    if (!response.ok || data.error) {
+      // Mostrar error específico si existe
+      let errorMsg = data.message || "Error al procesar el archivo";
+      if (data.suggestion) errorMsg += `\n\nSugerencia: ${data.suggestion}`;
+      
+      alert(errorMsg);
       return;
     }
 
-    const data = await response.json();
-
+    // Solo mostrar confirmación si todo está bien
     alert("✅ CSV cargado correctamente. ¡Listo para procesar!");
     window.datosProcesados = data;
     btnProcesar.disabled = false;
 
   } catch (error) {
     console.error("Error al subir CSV:", error);
-    alert("Ocurrió un error al procesar el archivo.");
+    alert("❌ Error de conexión al procesar el archivo.");
   }
 });
 
