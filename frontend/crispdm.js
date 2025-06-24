@@ -92,12 +92,6 @@ btnProcesar.addEventListener("click", () => {
   } else {
     document.getElementById("tabla-no-clasificados").innerHTML = "<tr><td>No hay registros no clasificados</td></tr>";
   }
-
-  fetch("https://habilis2025-production.up.railway.app/precision-mineria")
-    .then(r => r.json())
-    .then(d => {
-      document.getElementById("precision-modelo").textContent = d.precision ? (d.precision * 100).toFixed(2) + "%" : "⚠️ No evaluado aún";
-    });
 });
 
 // Lógica para subir CSV manual y verificar precisión real
