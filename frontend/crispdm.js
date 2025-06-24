@@ -49,7 +49,7 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
 
   } catch (error) {
     console.error("Error al subir CSV:", error);
-    alert("❌ Ocurrió un error al procesar el archivo.");
+    alert("Ocurrió un error al procesar el archivo.");
   }
 });
 
@@ -82,7 +82,7 @@ btnProcesar.addEventListener("click", () => {
   document.getElementById("prep-limpieza").textContent = datos.resumen.caracteres_limpiados ? "Sí" : "No";
   document.getElementById("prep-habilidades").textContent = datos.resumen.habilidades.length;
 
-  // 👉 AQUÍ los generadores de tablas buenos
+  // AQUÍ los generadores de tablas buenos
   document.getElementById("tabla-antes").innerHTML = generarTablaHTMLCruda(datos.preview_antes);
   document.getElementById("tabla-despues").innerHTML = generarTablaHTML(datos.preview_despues);
 
