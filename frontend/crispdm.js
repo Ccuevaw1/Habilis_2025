@@ -32,16 +32,6 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
     }
 
     const data = await response.json();
-    
-    // Manejar caso de estructura inválida
-    if (data.error === "Estructura CSV inadecuada") {
-      let errorMsg = data.message + "\n\n";
-      errorMsg += "Columnas requeridas:\n" + data.required_columns.join(', ') + "\n\n";
-      errorMsg += "Columnas recibidas:\n" + data.received_columns.join(', ');
-      
-      alert(errorMsg);
-      return;
-    }
 
     alert("✅ CSV cargado correctamente. ¡Listo para procesar!");
     window.datosProcesados = data;
