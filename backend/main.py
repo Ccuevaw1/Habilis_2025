@@ -271,16 +271,39 @@ async def calcular_precision(file: UploadFile = File(...)):
         if "title" not in df_manual.columns or "title" not in df_sistema.columns:
             return {"error": "Ambos archivos deben tener la columna 'title' para emparejar los registros."}
 
-        # Detectar columnas de habilidades en archivo manual (sin prefijos)
-        habilidades_real = [col for col in df_manual.columns if col in df_sistema.columns and (col.startswith("hard_") or col.startswith("soft_"))]
+        # Establecer columnas de habilidades
+        columnas_habilidad = [col for col in df_manual.columns if col.startswith("hard_") or col.startswith("soft_")]
+        if not columnas_habilidad:
+            return {"error": "No se detectaron columnas de habilidades en el archivo manual."}
 
-        if not habilidades_real:
-            return {"error": "No se encontraron columnas de habilidades comunes entre archivo manual y procesado."}
+        # Normalizar títulos
+        df_manual["title"] = df_manual["title"].astype(str).str.lower().str.strip()
+        df_sistema["title"] = df_sistema["title"].astype(str).str.lower().str.strip()
 
-        # Normalizar valores a 0/1 para comparación
-        for col in habilidades_real:
-            df_manual[col] = df_manual[col].astype(str).str.lower().map({"true": 1, "false": 0}).fillna(0).astype(int)
-            df_sistema[col] = df_sistema[col].fillna(0).astype(int)
+        # Realizar coincidencia parcial en lugar de merge directo
+        def encontrar_coincidencia_parcial(titulo_manual, titulos_sistema):
+            for titulo_sistema in titulos_sistema:
+                if titulo_manual in titulo_sistema:
+                    return titulo_sistema
+            return None
+
+        df_manual["match_title"] = df_manual["title"].apply(lambda t: encontrar_coincidencia_parcial(t, df_sistema["title"].tolist()))
+
+        # Eliminar los que no encontraron match
+        df_manual_matched = df_manual.dropna(subset=["match_title"])
+        df_sistema_matched = df_sistema[df_sistema["title"].isin(df_manual_matched["match_title"])]
+
+        # Ahora hacer merge entre df_manual_matched y df_sistema_matched
+        df_merged = pd.merge(
+            df_manual_matched,
+            df_sistema_matched,
+            left_on="match_title",
+            right_on="title",
+            suffixes=("_real", "_detectado")
+        )
+
+        if df_merged.empty:
+            return {"error": "No se encontraron coincidencias de título entre el CSV manual y el procesado."}
 
         # Calcular precisión por fila (proporción de aciertos por cada habilidad)
         precisiones = []
