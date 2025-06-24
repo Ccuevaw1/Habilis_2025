@@ -7,6 +7,7 @@ from mineria import procesar_datos_computrabajo
 from sklearn.metrics import accuracy_score
 from models.tiempo import TiempoCarga
 from datetime import datetime, timezone
+from io import BytesIO
 import pandas as pd
 from pydantic import BaseModel
 from unidecode import unidecode
@@ -95,10 +96,7 @@ def obtener_estado_csv():
 
 @app.post("/subir-csv-crudo/")
 async def subir_csv_crudo(file: UploadFile = File(...)):
-    """
-    Endpoint para subir y procesar un archivo CSV crudo extraído de Computrabajo.
-    El sistema detecta habilidades técnicas y blandas, y guarda los datos en la base de datos.
-    """
+    
     # Asegurar carpeta temporal
     os.makedirs("data", exist_ok=True)
     temp_path = "data/datos_crudos.csv"
@@ -133,89 +131,6 @@ async def subir_csv_crudo(file: UploadFile = File(...)):
     db.close()
 
     return {"message": f"{len(df)} registros procesados y guardados exitosamente."}
-
-@app.post("/verificar-modelo/")
-async def verificar_modelo(file: UploadFile = File(...)):
-    try:
-        # Guardar el archivo cargado
-        temp_manual_path = "data/manual.csv"
-        with open(temp_manual_path, "wb") as f:
-            f.write(await file.read())
-
-        # Leer el CSV manual que contiene las etiquetas verdaderas
-        try:
-            df_real = pd.read_csv(temp_manual_path, sep=';', encoding='utf-8')
-        except UnicodeDecodeError:
-            df_real = pd.read_csv(temp_manual_path, sep=';', encoding='latin1')
-
-        # Generar predicciones usando la función de minería
-        df_predicho = procesar_datos_computrabajo(temp_manual_path)
-
-        # Extraer las columnas de habilidades (técnicas y blandas)
-        columnas_habilidades = [col for col in df_real.columns if col.startswith("hard_") or col.startswith("soft_")]
-
-        # Preparar los datos verdaderos y predichos para calcular precisión y recall
-        y_true = df_real[columnas_habilidades].applymap(lambda x: int(str(x).lower() in ["1", "true", "t"])).reset_index(drop=True)
-        y_pred = df_predicho[columnas_habilidades].applymap(lambda x: int(str(x).lower() in ["1", "true", "t"])).reset_index(drop=True)
-
-        # **Cálculo de Precisión y Recall**
-        precision = accuracy_score(y_true.values.flatten(), y_pred.values.flatten())
-        recall = (y_pred & y_true).sum().sum() / y_true.sum().sum()
-
-        # **Cálculo de Cobertura Media por Carrera**
-        if "career" in df_real.columns:
-            carreras = df_real["career"].unique()
-            cobertura = {}
-            for carrera in carreras:
-                subset = df_real[df_real["career"] == carrera]
-                if len(subset) > 0:
-                    sub_pred = df_predicho[df_real["career"] == carrera]
-                    sub_cols = sub_pred[columnas_habilidades]
-                    cobertura[carrera] = sub_cols.sum(axis=1).mean()
-            cobertura_media = round(sum(cobertura.values()) / len(cobertura), 2)
-        else:
-            cobertura_media = None
-
-        # **Cálculo de Habilidades Más Ruidosas**
-        errores = abs(y_true - y_pred)
-        errores_por_habilidad = errores.sum().sort_values(ascending=False)
-        habilidades_ruidosas = {
-            k: round(v / len(y_true), 4)  # o dividir entre número total de ejemplos
-            for k, v in errores_por_habilidad.head(5).items()
-        }
-
-        # Preparar los resultados
-        resultado = {
-            "precision": round(precision, 4),
-            "recall": round(recall, 4),
-            "cobertura_media": cobertura_media,
-            "habilidades_ruidosas": habilidades_ruidosas,
-            "mensaje": f"Precisión del modelo de minería: {precision * 100:.2f}%"
-        }
-
-        # Guardar la evaluación
-        os.makedirs("data", exist_ok=True)
-        with open("data/evaluacion_modelo.json", "w") as f:
-            json.dump(resultado, f, indent=2)
-        return resultado
-
-    except Exception as e:
-        return {"error": str(e)}
-
-@app.get("/precision-mineria/")
-def obtener_precision_modelo():
-    try:
-        with open("data/evaluacion_modelo.json", "r") as f:
-            evaluacion = json.load(f)
-        return {
-            "precision": evaluacion.get("precision"),
-            "mensaje": evaluacion.get("mensaje", "Precisión del modelo cargada correctamente.")
-        }
-    except FileNotFoundError:
-        return {
-            "precision": None,
-            "mensaje": "⚠️ Aún no se ha verificado el modelo."
-        }
 
 @app.get("/estadisticas/salarios")
 def estadisticas_salarios(carrera: str = Query(..., description="Nombre de la carrera"), db: Session = Depends(get_db)):
@@ -338,6 +253,69 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
             "error": str(e),
             "detalle": error_trace  # Opcional para debug
         }
+
+@app.post("/precision-mineria")
+async def calcular_precision(file: UploadFile = File(...)):
+    try:
+        # Cargar el CSV manual
+        contenido = await file.read()
+        try:
+            df_manual = pd.read_csv(BytesIO(contenido), encoding='utf-8')
+        except UnicodeDecodeError:
+            df_manual = pd.read_csv(BytesIO(contenido), encoding='latin1')
+
+        # Cargar datos procesados del sistema
+        df_sistema = pd.read_csv("data/datos_procesados.csv")
+
+        # Asegurar que haya columna clave para emparejar (ej. título)
+        if "title" not in df_manual.columns or "title" not in df_sistema.columns:
+            return {"error": "Ambos archivos deben tener la columna 'title' para emparejar los registros."}
+
+        # Establecer columnas de habilidades
+        columnas_habilidad = [col for col in df_manual.columns if col.startswith("hard_") or col.startswith("soft_")]
+        if not columnas_habilidad:
+            return {"error": "No se detectaron columnas de habilidades en el archivo manual."}
+
+        # Unir por título (asumiendo que los títulos son únicos)
+        df_merged = pd.merge(df_manual, df_sistema, on="title", suffixes=("_real", "_detectado"))
+
+        if df_merged.empty:
+            return {"error": "No se encontraron coincidencias de título entre el CSV manual y el procesado."}
+
+        # Calcular precisión por fila (proporción de aciertos por cada habilidad)
+        precisiones = []
+        for _, row in df_merged.iterrows():
+            aciertos = 0
+            total = 0
+            for col in columnas_habilidad:
+                real = row.get(f"{col}_real")
+                detectado = row.get(f"{col}_detectado")
+                if pd.isna(real) or pd.isna(detectado):
+                    continue
+                total += 1
+                if int(real) == int(detectado):
+                    aciertos += 1
+            if total > 0:
+                precisiones.append(aciertos / total)
+
+        precision_promedio = round(sum(precisiones) / len(precisiones), 4) if precisiones else 0
+
+        # distribución por carrera
+        distribucion = df_sistema["career"].value_counts().to_dict() if "career" in df_sistema.columns else {}
+
+        return {
+            "precision": precision_promedio,
+            "registros_comparados": len(df_merged),
+            "distribucion_carreras": distribucion
+        }
+
+    except Exception as e:
+        import traceback
+        return {
+            "error": str(e),
+            "detalle": traceback.format_exc()
+        }
+
 
 class TiempoCargaRequest(BaseModel):
     carrera: str

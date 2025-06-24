@@ -13,7 +13,11 @@
     <div class="barra-navegacion">
       <img src="images/logo.png" alt="Logo Habilits" class="logo" />
       <input type="file" id="inputCsv" accept=".csv" style="display: none;" />
-      <button class="btn-subir" id="btnUpload">Subir CSV</button>
+      <input type="file" id="inputManual" accept=".csv" style="display: none;" />
+      <div style="display: flex; gap: 1rem;">
+        <button class="btn-subir" id="btnUpload">Subir CSV</button>
+        <button class="btn-subir" id="btnVerificar" style="display: none;">Verificar precisión</button>
+      </div>
     </div>
   </header>
 
@@ -61,7 +65,7 @@
     </div>
 
     <div class="grafico-card" id="preview-modelado-container" style="display: none; grid-column: 1 / span 2; grid-row: 6;">
-      <h3>MODELADO</h3>
+      <h3>APLICACIÓN DEL MODELADO</h3>
       <div class="tablas-contenedor">
         <!-- Tabla sin procesar -->
         <div class="tabla-seccion">
@@ -84,6 +88,7 @@
     <div class="grafico-card" id="precision-container" style="display: none; grid-column: 1 / span 2; grid-row: 7;">
       <h3>Precisión actual del modelo:</h3>
       <p id="precision-modelo">Cargando...</p>
+      <div id="conteo-carreras" style="margin-top: 1rem;"></div>
     </div>
 
   </main>

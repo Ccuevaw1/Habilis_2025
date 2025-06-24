@@ -4,73 +4,6 @@ import { generarTablaHTMLCruda, generarTablaHTML } from './common.js';
 const fileInput = document.getElementById("inputCsv");
 const btnUpload = document.getElementById("btnUpload");
 
-// if (fileInput && btnUpload) {
-//   btnUpload.addEventListener("click", () => fileInput.click());
-
-//   fileInput.addEventListener("change", () => {
-//     const file = fileInput.files[0];
-//     if (!file) return;
-
-//     const formData = new FormData();
-//     formData.append("file", file);
-
-//     fetch("https://habilis2025-production.up.railway.app/proceso-csv", {
-//       method: "POST",
-//       body: formData
-//     })
-//     .then(res => res.json())
-//     .then(data => {
-//       const resumen = data.resumen;
-//       const antes = data.preview_antes;
-//       const despues = data.preview_despues;
-
-//       function setTextoSiExiste(id, texto) {
-//         const el = document.getElementById(id);
-//         if (el) el.textContent = texto;
-//       }
-
-//       function setTablaSiExiste(id, html) {
-//         const el = document.getElementById(id);
-//         if (el) el.innerHTML = html;
-//       }
-
-//       setTextoSiExiste("prep-total", resumen.originales);
-//       setTextoSiExiste("prep-eliminados", resumen.eliminados);
-//       setTextoSiExiste("prep-finales", resumen.finales);
-//       setTextoSiExiste("prep-salario-ok", resumen.transformaciones_salario);
-//       setTextoSiExiste("prep-rellenos", resumen.rellenos.join(", "));
-//       setTextoSiExiste("prep-columnas-eliminadas", resumen.columnas_eliminadas.join(", "));
-//       setTextoSiExiste("prep-limpieza", resumen.caracteres_limpiados ? "Sí" : "No");
-//       setTextoSiExiste("prep-habilidades", resumen.habilidades.join(", "));
-
-//       setTablaSiExiste("tabla-antes", generarTablaHTMLCruda(antes));
-//       setTablaSiExiste("tabla-despues", generarTablaHTML(despues));
-
-//       alert("Archivo CSV cargado correctamente. Puedes volver al Dashboard.");
-//     })
-//     .catch(() => alert("Error al subir el archivo"));
-//   });
-// }
-
-// function renderTablaDesdeObjeto(datos, tablaId) {
-//   if (!Array.isArray(datos) || datos.length === 0) return;
-
-//   const tabla = document.getElementById(tablaId);
-//   const columnas = Object.keys(datos[0]);
-
-//   // Crear encabezado
-//   tabla.innerHTML = `
-//     <thead>
-//       <tr>${columnas.map(col => `<th>${col}</th>`).join('')}</tr>
-//     </thead>
-//     <tbody>
-//       ${datos.map(row =>
-//         `<tr>${columnas.map(col => `<td>${row[col]}</td>`).join('')}</tr>`
-//       ).join('')}
-//     </tbody>
-//   `;
-// }
-
 // Deshabilitar botón de procesar inicialmente
 const btnProcesar = document.getElementById("btnProcesar");
 btnProcesar.disabled = true;
@@ -103,6 +36,9 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
 
     // Guardamos los datos globalmente para usarlos después
     window.datosProcesados = data;
+
+    btnProcesar.disabled = false;
+    document.getElementById("btnVerificar").style.display = "inline-block";
 
     // Habilitamos el botón
     btnProcesar.disabled = false;
@@ -162,6 +98,42 @@ btnProcesar.addEventListener("click", () => {
     .then(d => {
       document.getElementById("precision-modelo").textContent = d.precision ? (d.precision * 100).toFixed(2) + "%" : "⚠️ No evaluado aún";
     });
+});
+
+// Lógica para subir CSV manual y verificar precisión real
+document.getElementById("btnVerificar").addEventListener("click", () => {
+  document.getElementById("inputManual").click();
+});
+
+document.getElementById("inputManual").addEventListener("change", async function () {
+  const file = this.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const response = await fetch("https://habilis2025-production.up.railway.app/precision-mineria", {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await response.json();
+
+    document.getElementById("precision-modelo").textContent = `Precisión calculada: ${(data.precision * 100).toFixed(2)}%`;
+
+    // Mostrar conteo por carrera
+    const conteo = data.distribucion_carreras || {};
+    const divConteo = document.getElementById("conteo-carreras");
+    divConteo.innerHTML = "<h4>Distribución por carrera:</h4><ul>" + 
+      Object.entries(conteo).map(([carrera, cantidad]) =>
+        `<li><strong>${carrera}</strong>: ${cantidad} registros</li>`
+      ).join('') + "</ul>";
+
+  } catch (error) {
+    console.error("Error al verificar precisión:", error);
+    alert("❌ Ocurrió un error al calcular la precisión.");
+  }
 });
 
 // Función para renderizar tabla
