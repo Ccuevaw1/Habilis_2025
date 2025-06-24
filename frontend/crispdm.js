@@ -48,7 +48,7 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
 // Mostrar resultados solo al hacer clic en "Procesar"
 btnProcesar.addEventListener("click", () => {
   if (!window.datosProcesados) {
-    alert("⚠️ Primero debes subir un archivo CSV antes de procesar.");
+    mostrarMensajeError("⚠️ Primero debes subir un archivo CSV antes de procesar.");
     return;
   }
 
@@ -178,5 +178,15 @@ function renderTabla(idTabla, datos) {
   tbody += "</tbody>";
 
   tabla.innerHTML = thead + tbody;
+}
+
+function mostrarMensajeError(mensaje) {
+  const div = document.createElement("div");
+  div.textContent = mensaje;
+  div.className = "alert-error";
+
+  document.body.prepend(div);
+
+  setTimeout(() => div.remove(), 4000);
 }
 
