@@ -41,27 +41,33 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
     alert("✅ CSV cargado correctamente. ¡Listo para procesar!");
     window.datosProcesados = data;
 
-    // Mostrar tabla sin procesar al cargar el archivo
-    document.getElementById("preview-modelado-container").style.display = "block";
+    // Mostrar bloque previo (tabla sin procesar + botón)
+    document.getElementById("bloque-previo").style.display = "block";
     document.getElementById("tabla-antes").innerHTML = generarTablaHTMLCruda(data.preview_antes);
 
-    // Mover botón "Procesar CSV" debajo de esa tabla
-    document.getElementById("seccion-boton-procesar").style.display = "block";
+    // Ocultar cualquier procesamiento anterior si lo hubo
+    document.getElementById("bloque-procesado").style.display = "none";
+    document.getElementById("preparacion-datos-container").style.display = "none";
+    document.getElementById("porcentaje-carreras-container").style.display = "none";
+    document.getElementById("detalles-carrera-container").style.display = "none";
+    document.getElementById("no-ingenieria-container").style.display = "none";
 
     // Ahora que el botón está en el DOM, le asignamos su evento
-    const btnProcesar = document.getElementById("btnProcesar");
+    //const btnProcesar = document.getElementById("btnProcesar");
     btnProcesar.addEventListener("click", () => {
       if (!window.datosProcesados) return;
 
       const datos = window.datosProcesados;
 
+      // Ocultar bloque previo y mostrar procesado
+      document.getElementById("bloque-previo").style.display = "none";
+      document.getElementById("bloque-procesado").style.display = "block";
+
+      // Mostrar todas las secciones de procesamiento
       document.getElementById("preparacion-datos-container").style.display = "block";
       document.getElementById("porcentaje-carreras-container").style.display = "block";
       document.getElementById("detalles-carrera-container").style.display = "block";
-
-      if (document.getElementById("no-ingenieria-container")) {
-        document.getElementById("no-ingenieria-container").style.display = "block";
-      }
+      document.getElementById("no-ingenieria-container").style.display = "block";
 
       document.getElementById("prep-total").textContent = datos.resumen.originales;
       document.getElementById("prep-eliminados").textContent = datos.resumen.eliminados;
