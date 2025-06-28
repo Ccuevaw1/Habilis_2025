@@ -80,7 +80,8 @@ function renderTabla(idTabla, datos) {
 }
 
 // Mostrar resultados solo al hacer clic en "Procesar"
-btnProcesar.addEventListener("click", () => {
+document.getElementById("btnProcesar").addEventListener("click", () => {
+
   if (!window.datosProcesados) return;
 
   const datos = window.datosProcesados;
