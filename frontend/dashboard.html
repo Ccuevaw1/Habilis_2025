@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard Ingeniería</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- jsPDF (necesaria para html2pdf) -->
+  <!-- html2pdf CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+<header class="encabezado">
+  <div class="barra-navegacion">
+    <img src="images/logo.png" alt="Logo Habilits" class="logo" />
+    <div class="barra-controles">
+      <div class="select-wrapper">
+        <select class="select-carrera" id="select-carrera">
+          <option selected disabled>Ingeniería</option>
+          <option>Ingeniería Industrial</option>
+          <option>Ingeniería de Sistemas</option>
+          <option>Ingeniería Civil</option>
+          <option>Ingeniería de Minas</option>
+          <option>Ingeniería Agrónoma</option>
+          <option>Ingeniería Ambiental</option>
+        </select>
+      </div>
+      <!-- <input type="file" id="inputCsv" accept=".csv" style="display: none;" />
+      <button class="btn-subir" id="btnUpload">Subir CSV</button> -->
+      <input type="file" id="inputManualCsv" accept=".csv" style="display: none;" />
+      <button class="btn-exportar" id="btnExportar">EXPORTAR</button>
+    </div>
+  </div>
+</header>
+
+<section id="contenedor-pdf">
+  <div class="franja-blanca">
+    <h1 class="titulo-principal" id="titulo-carrera">INGENIERÍA DE SISTEMAS</h1>
+  </div>
+  
+  <div class="enlace-crispdm">
+    <a href="index.html">Ver preprocesamiento →</a>
+  </div>
+
+  <main class="dashboard-grid">
+    <!--Gráfico Habilidades Técnicas -->
+    <div class="grafico-card" id="grafico-tecnicas-container" style="grid-column: 1; grid-row: 1;">
+      <h3>Habilidades Técnicas</h3>
+      <canvas id="graficoTecnicas"></canvas>
+    </div>
+
+    <!--Gráfico Habilidades Blandas -->
+    <div class="grafico-card" id="grafico-blandas-container" style="grid-column: 2; grid-row: 1;">
+      <h3>Habilidades Blandas</h3>
+      <canvas id="graficoBlandas"></canvas>
+    </div>
+
+    <!--Tabla Top 5 Soft Skills -->
+    <div class="top-card" id="tabla-blandas-container" style="grid-column: 1; grid-row: 2;">
+      <h3>Top 5 Soft Skills</h3>
+      <table class="tabla-estilo" id="tabla-blandas">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Habilidad Blanda</th>
+            <th>Número de Ofertas</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!--Tabla Top 5 Herramientas Tech -->
+    <div class="top-card" id="tabla-tecnicas-container" style="grid-column: 2; grid-row: 2;">
+      <h3>Top 5 Herramientas Tech</h3>
+      <table class="tabla-estilo" id="tabla-tecnicas">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Herramienta</th>
+            <th>Número de Ofertas</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Gráfico de Salarios -->
+    <div class="grafico-card" id="grafico-salarios-container" style="grid-column: 1 / span 2; grid-row: 3;">
+      <h3>Salarios por Puesto</h3>
+      <canvas id="graficoSalarios"></canvas>
+    </div>
+  </main>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script type="module" src="./common.js"></script>
+<script type="module" src="./dashboard.js"></script>
+</body>
+</html>
