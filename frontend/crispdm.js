@@ -4,9 +4,9 @@ import { generarTablaHTMLCruda, generarTablaHTML } from './common.js';
 const fileInput = document.getElementById("inputCsv");
 const btnUpload = document.getElementById("btnUpload");
 
-// Deshabilitar botón de procesar inicialmente
-const btnProcesar = document.getElementById("btnProcesar");
-btnProcesar.disabled = true;
+// // Deshabilitar botón de procesar inicialmente
+// const btnProcesar = document.getElementById("btnProcesar");
+// btnProcesar.disabled = true;
 
 // Lógica para subir el CSV
 document.getElementById("btnUpload").addEventListener("click", () => {
@@ -49,7 +49,8 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
     document.getElementById("seccion-boton-procesar").style.display = "block";
 
     // Ahora que el botón está en el DOM, le asignamos su evento
-    document.querySelector("#btnProcesar").addEventListener("click", () => {
+    const btnProcesar = document.getElementById("btnProcesar");
+    btnProcesar.addEventListener("click", () => {
       if (!window.datosProcesados) return;
 
       const datos = window.datosProcesados;
