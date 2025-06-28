@@ -15,7 +15,7 @@
       <input type="file" id="inputCsv" accept=".csv" style="display: none;" />
       <div style="display: flex; gap: 1rem; align-items: center;">
         <button class="btn-subir" id="btnUpload">Subir CSV</button>
-        <button class="btn-subir" id="btnProcesar">Procesar CSV</button>
+        <!-- <button class="btn-subir" id="btnProcesar">Procesar CSV</button> -->
       </div>
     </div>
   </header>
@@ -68,7 +68,10 @@
             <table class="tabla-estilo tabla-crudos" id="tabla-antes"></table>
           </div>
         </div>
-       
+        <div id="seccion-boton-procesar" style="display: none; text-align: center; margin-top: 1rem;">
+          <button class="btn-subir" id="btnProcesar">Procesar CSV</button>
+        </div>
+
         <!-- Tabla procesada -->
         <div class="tabla-seccion">
           <h4>Datos Procesados</h4>

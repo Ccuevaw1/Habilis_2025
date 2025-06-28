@@ -40,13 +40,44 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
     // Solo mostrar confirmación si todo está bien
     alert("✅ CSV cargado correctamente. ¡Listo para procesar!");
     window.datosProcesados = data;
-    btnProcesar.disabled = false;
+
+    // Mostrar tabla sin procesar al cargar el archivo
+    document.getElementById("preview-modelado-container").style.display = "block";
+    document.getElementById("tabla-antes").innerHTML = generarTablaHTMLCruda(data.preview_antes);
+
+    // Mover botón "Procesar CSV" debajo de esa tabla
+    document.getElementById("seccion-boton-procesar").style.display = "block";
+
 
   } catch (error) {
     console.error("Error al subir CSV:", error);
     alert("Error de conexión al procesar el archivo.");
   }
 });
+
+// Función para renderizar tabla
+function renderTabla(idTabla, datos) {
+  const tabla = document.getElementById(idTabla);
+  tabla.innerHTML = "";
+
+  if (datos.length === 0) {
+    tabla.innerHTML = "<tr><td>No hay registros</td></tr>";
+    return;
+  }
+
+  // Crear encabezados
+  const headers = Object.keys(datos[0]);
+  let thead = "<thead><tr>" + headers.map(h => `<th>${h}</th>`).join('') + "</tr></thead>";
+
+  // Crear filas
+  let tbody = "<tbody>";
+  for (const fila of datos) {
+    tbody += "<tr>" + headers.map(h => `<td>${fila[h]}</td>`).join('') + "</tr>";
+  }
+  tbody += "</tbody>";
+
+  tabla.innerHTML = thead + tbody;
+}
 
 // Mostrar resultados solo al hacer clic en "Procesar"
 btnProcesar.addEventListener("click", () => {
@@ -153,28 +184,3 @@ btnProcesar.addEventListener("click", () => {
     document.getElementById("tabla-no-clasificados").innerHTML = "<tr><td>No hay registros no clasificados</td></tr>";
   }
 });
-
-// Función para renderizar tabla
-function renderTabla(idTabla, datos) {
-  const tabla = document.getElementById(idTabla);
-  tabla.innerHTML = "";
-
-  if (datos.length === 0) {
-    tabla.innerHTML = "<tr><td>No hay registros</td></tr>";
-    return;
-  }
-
-  // Crear encabezados
-  const headers = Object.keys(datos[0]);
-  let thead = "<thead><tr>" + headers.map(h => `<th>${h}</th>`).join('') + "</tr></thead>";
-
-  // Crear filas
-  let tbody = "<tbody>";
-  for (const fila of datos) {
-    tbody += "<tr>" + headers.map(h => `<td>${fila[h]}</td>`).join('') + "</tr>";
-  }
-  tbody += "</tbody>";
-
-  tabla.innerHTML = thead + tbody;
-}
-
