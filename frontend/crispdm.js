@@ -60,7 +60,7 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
       const datos = window.datosProcesados;
 
       // Ocultar bloque previo y mostrar procesado
-      document.getElementById("bloque-previo").style.display = "none";
+      document.getElementById("seccion-boton-procesar").style.display = "none";
       document.getElementById("bloque-procesado").style.display = "block";
 
       // Mostrar todas las secciones de procesamiento
