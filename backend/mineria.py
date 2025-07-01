@@ -163,12 +163,9 @@ def procesar_datos_computrabajo(csv_path):
     preview_no_ingenieria = registros_no_ingenieria.fillna('').astype(str).to_dict(orient='records')
     preview_no_clasificados = registros_no_clasificados.fillna('').astype(str).to_dict(orient='records')
     preview_antes = df_original.fillna('').astype(str).to_dict(orient='records')
-    preview_despues = (
-    df_final.copy()
-    .assign(**{col: df_final[col].map({True: "Sí", False: "No"}) 
-             for col in columnas_detectadas})
-    .fillna('')
-    .to_dict(orient='records')
-    )
+    # Convertir columnas de habilidades de booleano a 'Sí'/'No'
+    for col in columnas_detectadas:
+        df_final[col] = df_final[col].apply(lambda x: "Sí" if x else "No")
+    preview_despues = df_final.fillna('').to_dict(orient='records')
 
     return df_final, resumen, columnas_detectadas, preview_antes, preview_despues, preview_no_ingenieria, preview_no_clasificados

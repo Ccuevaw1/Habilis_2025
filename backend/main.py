@@ -238,7 +238,7 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
                 workday=row.get("workday"),
                 modality=row.get("modality"),
                 salary=row.get("salary"),
-                **{col: bool(row[col]) for col in columnas_detectadas}
+                **{col: int(row[col]) for col in columnas_detectadas}
             )
             db.add(habilidad)
         db.commit()
