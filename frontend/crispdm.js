@@ -79,8 +79,10 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
       document.getElementById("prep-rellenos").textContent = datos.resumen.rellenos.join(', ');
       document.getElementById("prep-columnas-eliminadas").textContent = datos.resumen.columnas_eliminadas.join(', ');
       document.getElementById("prep-limpieza").textContent = datos.resumen.caracteres_limpiados ? "Sí" : "No";
-      document.getElementById("prep-habilidades").textContent = datos.resumen.habilidades.length
-        .map(h => h === true ? "Sí" : "No").join(", ");
+      // Asegúrate de que `habilidades` es un array de booleans (True/False)
+      const habilidades = datos.resumen.habilidades.map(h => h === true ? "Sí" : "No").join(", ");
+      // Ahora actualiza el contenido del elemento
+      document.getElementById("prep-habilidades").textContent = habilidades;
 
       document.getElementById("tabla-despues").innerHTML = generarTablaHTML(datos.preview_despues);
 
