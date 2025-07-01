@@ -79,10 +79,7 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
       document.getElementById("prep-rellenos").textContent = datos.resumen.rellenos.join(', ');
       document.getElementById("prep-columnas-eliminadas").textContent = datos.resumen.columnas_eliminadas.join(', ');
       document.getElementById("prep-limpieza").textContent = datos.resumen.caracteres_limpiados ? "Sí" : "No";
-      // Asegúrate de que `habilidades` es un array de booleans (True/False)
-      const habilidades = datos.resumen.habilidades.map(h => h === true ? "Sí" : "No").join(", ");
-      // Ahora actualiza el contenido del elemento
-      document.getElementById("prep-habilidades").textContent = habilidades;
+      document.getElementById("prep-habilidades").textContent = datos.resumen.habilidades.length;
 
       document.getElementById("tabla-despues").innerHTML = generarTablaHTML(datos.preview_despues);
 
@@ -157,8 +154,8 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
   }
 });
 
-// Función para renderizar tabla
-function renderTabla(idTabla, datos) {
+// Función para renderizar la tabla de habilidades
+function renderTablaHabilidades(idTabla, datos) {
   const tabla = document.getElementById(idTabla);
   tabla.innerHTML = "";
 
@@ -167,123 +164,22 @@ function renderTabla(idTabla, datos) {
     return;
   }
 
-  // Crear encabezados
+  // Crear encabezados de la tabla
   const headers = Object.keys(datos[0]);
   let thead = "<thead><tr>" + headers.map(h => `<th>${h}</th>`).join('') + "</tr></thead>";
 
-  // Crear filas
+  // Crear filas de datos, reemplazando 1 y 0 por "Sí" y "No"
   let tbody = "<tbody>";
   for (const fila of datos) {
-    tbody += "<tr>" + headers.map(h => `<td>${fila[h]}</td>`).join('') + "</tr>";
+    tbody += "<tr>" + headers.map(h => {
+      // Reemplazar 1 por "Sí" y 0 por "No"
+      return `<td>${fila[h] === 1 ? "Sí" : fila[h] === 0 ? "No" : fila[h]}</td>`;
+    }).join('') + "</tr>";
   }
   tbody += "</tbody>";
 
   tabla.innerHTML = thead + tbody;
 }
 
-// // Mostrar resultados solo al hacer clic en "Procesar"
-// document.getElementById("btnProcesar").addEventListener("click", () => {
-
-//   if (!window.datosProcesados) return;
-
-//   const datos = window.datosProcesados;
-
-//   document.getElementById("preparacion-datos-container").style.display = "block";
-//   document.getElementById("preview-modelado-container").style.display = "block";
-//   document.getElementById("porcentaje-carreras-container").style.display = "block";
-
-//   if (document.getElementById("no-ingenieria-container")) {
-//     document.getElementById("no-ingenieria-container").style.display = "block";
-//   }
-//   if (document.getElementById("no-clasificados-container")) {
-//     document.getElementById("no-clasificados-container").style.display = "block";
-//   }
-
-//   // Resumen
-//   document.getElementById("prep-total").textContent = datos.resumen.originales;
-//   document.getElementById("prep-eliminados").textContent = datos.resumen.eliminados;
-//   document.getElementById("prep-finales").textContent = datos.resumen.finales;
-//   document.getElementById("prep-salario-ok").textContent = datos.resumen.transformaciones_salario;
-//   document.getElementById("prep-rellenos").textContent = datos.resumen.rellenos.join(', ');
-//   document.getElementById("prep-columnas-eliminadas").textContent = datos.resumen.columnas_eliminadas.join(', ');
-//   document.getElementById("prep-limpieza").textContent = datos.resumen.caracteres_limpiados ? "Sí" : "No";
-//   document.getElementById("prep-habilidades").textContent = datos.resumen.habilidades.length;
-
-//   // AQUÍ los generadores de tablas buenos
-//   document.getElementById("tabla-antes").innerHTML = generarTablaHTMLCruda(datos.preview_antes);
-//   document.getElementById("tabla-despues").innerHTML = generarTablaHTML(datos.preview_despues);
-
-//   // DISTRIBUCIÓN POR CARRERA
-//   document.getElementById("porcentaje-carreras-container").style.display = "block";
-
-//   const registros = datos.preview_despues;
-//   if (registros && registros.length > 0) {
-//     const conteoCarreras = {};
-//     for (const reg of registros) {
-//       const carrera = reg.career || 'Sin clasificar';
-//       conteoCarreras[carrera] = (conteoCarreras[carrera] || 0) + 1;
-//     }
-
-//     const total = registros.length;
-//     const filasHTML = Object.entries(conteoCarreras).map(([carrera, cantidad]) => {
-//       const porcentaje = ((cantidad / total) * 100).toFixed(1);
-//       return `<tr>
-//         <td>${carrera}</td>
-//         <td>${cantidad}</td>
-//         <td>${porcentaje}%</td>
-//       </tr>`;
-//     });
-
-//     document.getElementById("tabla-carreras-porcentaje").innerHTML = `
-//       <thead>
-//         <tr><th>Carrera</th><th>Registros</th><th>Porcentaje</th></tr>
-//       </thead>
-//       <tbody>${filasHTML.join("")}</tbody>
-//     `;
-//   }
-
-//   // REGISTROS DETALLADOS POR CARRERA
-//   document.getElementById("detalles-carrera-container").style.display = "block";
-
-//   const agrupados = {};
-//   for (const reg of registros) {
-//     const carrera = reg.career || 'Sin clasificar';
-//     if (!agrupados[carrera]) agrupados[carrera] = [];
-//     agrupados[carrera].push(reg);
-//   }
-
-//   const contenedor = document.getElementById("tablas-carreras-detalle");
-//   contenedor.innerHTML = "";  // Limpiar anteriores si los hubiera
-
-//   for (const [carrera, filas] of Object.entries(agrupados)) {
-//     const tablaHTML = generarTablaHTML(filas);  // tabla en formato HTML
-
-//     const details = document.createElement("details");
-//     const summary = document.createElement("summary");
-//     summary.textContent = `${carrera} (${filas.length} registros)`;
-//     summary.style.fontWeight = "bold";
-//     summary.style.margin = "1rem 0";
-
-//     details.appendChild(summary);
-
-//     const contenedorTabla = document.createElement("div");
-//     contenedorTabla.innerHTML = tablaHTML;
-//     contenedorTabla.className = "tabla-seccion";
-
-//     details.appendChild(contenedorTabla);
-//     contenedor.appendChild(details);
-//   }
-
-
-//   if (datos.no_ingenieria && datos.no_ingenieria.length > 0) {
-//     renderTabla("tabla-no-ingenieria", datos.no_ingenieria);
-//   } else {
-//     document.getElementById("tabla-no-ingenieria").innerHTML = "<tr><td>No hay registros no relacionados a ingeniería</td></tr>";
-//   }
-
-//   if (datos.no_clasificados && datos.no_clasificados.length > 0) {
-//     renderTabla("tabla-no-clasificados", datos.no_clasificados);
-//   } else {
-//     document.getElementById("tabla-no-clasificados").innerHTML = "<tr><td>No hay registros no clasificados</td></tr>";
-//   }
-// });
+// Usar la función para renderizar la tabla de habilidades
+renderTablaHabilidades("tabla-despues", datos.preview_despues);
