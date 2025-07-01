@@ -65,10 +65,10 @@ def procesar_datos_computrabajo(csv_path):
     ]
     for skill in hard_skills:
         col = f"hard_{skill.replace('/', '_').replace(' ', '_')}"
-        df[col] = df['texto_skills'].str.contains(rf'\b{re.escape(skill)}\b', regex=True)
+        df[col] = df['texto_skills'].str.contains(rf'\b{re.escape(skill)}\b', regex=True).replace({True: 'Sí', False: 'No'})
     for skill in soft_skills:
         col = f"soft_{skill.replace(' ', '_')}"
-        df[col] = df['texto_skills'].str.contains(rf'\b{re.escape(skill)}\b', regex=True)
+        df[col] = df['texto_skills'].str.contains(rf'\b{re.escape(skill)}\b', regex=True).replace({True: 'Sí', False: 'No'})
 
     # CLASIFICACIÓN DE CARRERA
     df['Subtítulo'] = df['Subtítulo'].astype(str).str.lower()
