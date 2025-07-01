@@ -40,6 +40,8 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
     // Solo mostrar confirmación si todo está bien
     alert("✅ CSV cargado correctamente. ¡Listo para procesar!");
     window.datosProcesados = data;
+    
+    document.getElementById("imagen-inicial").style.display = "block";
 
     // Mostrar bloque previo (tabla sin procesar + botón)
     document.getElementById("bloque-previo").style.display = "block";
@@ -57,6 +59,7 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
     btnProcesar.addEventListener("click", () => {
       if (!window.datosProcesados) return;
 
+      document.getElementById("imagen-inicial").style.display = "none";
       const datos = window.datosProcesados;
 
       // Ocultar bloque previo y mostrar procesado
