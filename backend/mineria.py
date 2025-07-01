@@ -63,18 +63,12 @@ def procesar_datos_computrabajo(csv_path):
         'liderazgo', 'responsabilidad', 'creatividad', 'resolución de problemas',
         'orientación al cliente', 'pensamiento crítico'
     ]
-    # Detectar habilidades y cambiar valores de True/False a 'Sí'/'No'
     for skill in hard_skills:
         col = f"hard_{skill.replace('/', '_').replace(' ', '_')}"
         df[col] = df['texto_skills'].str.contains(rf'\b{re.escape(skill)}\b', regex=True)
-        # Reemplaza True/False por Sí/No
-        df[col] = df[col].replace({True: 'Sí', False: 'No'})
-
     for skill in soft_skills:
         col = f"soft_{skill.replace(' ', '_')}"
         df[col] = df['texto_skills'].str.contains(rf'\b{re.escape(skill)}\b', regex=True)
-        # Reemplaza True/False por Sí/No
-        df[col] = df[col].replace({True: 'Sí', False: 'No'})
 
     # CLASIFICACIÓN DE CARRERA
     df['Subtítulo'] = df['Subtítulo'].astype(str).str.lower()
@@ -169,6 +163,9 @@ def procesar_datos_computrabajo(csv_path):
     preview_no_ingenieria = registros_no_ingenieria.fillna('').astype(str).to_dict(orient='records')
     preview_no_clasificados = registros_no_clasificados.fillna('').astype(str).to_dict(orient='records')
     preview_antes = df_original.fillna('').astype(str).to_dict(orient='records')
-    preview_despues = df_final.fillna('').to_dict(orient='records')
+    preview_despues = df_final.fillna('').copy()
+    for col in columnas_detectadas:
+        preview_despues[col] = preview_despues[col].apply(lambda x: "Sí" if x == 1 else "No")
+    preview_despues = preview_despues.to_dict(orient='records')
 
     return df_final, resumen, columnas_detectadas, preview_antes, preview_despues, preview_no_ingenieria, preview_no_clasificados
