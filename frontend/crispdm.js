@@ -79,7 +79,8 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
       document.getElementById("prep-rellenos").textContent = datos.resumen.rellenos.join(', ');
       document.getElementById("prep-columnas-eliminadas").textContent = datos.resumen.columnas_eliminadas.join(', ');
       document.getElementById("prep-limpieza").textContent = datos.resumen.caracteres_limpiados ? "Sí" : "No";
-      document.getElementById("prep-habilidades").textContent = datos.resumen.habilidades.length;
+      document.getElementById("prep-habilidades").textContent = datos.resumen.habilidades.length
+        .map(h => h === true ? "Sí" : "No").join(", ");
 
       document.getElementById("tabla-despues").innerHTML = generarTablaHTML(datos.preview_despues);
 

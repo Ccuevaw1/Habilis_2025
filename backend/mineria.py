@@ -63,19 +63,12 @@ def procesar_datos_computrabajo(csv_path):
         'liderazgo', 'responsabilidad', 'creatividad', 'resolución de problemas',
         'orientación al cliente', 'pensamiento crítico'
     ]
-    # Habilidades técnicas (hard skills)
     for skill in hard_skills:
         col = f"hard_{skill.replace('/', '_').replace(' ', '_')}"
-        # Aseguramos que el mapeo sea correcto, incluyendo el manejo de valores NaN
         df[col] = df['texto_skills'].str.contains(rf'\b{re.escape(skill)}\b', regex=True)
-        df[col] = df[col].map({True: 'Sí', False: 'No'}).fillna('No')  # Convertimos los valores True/False a "Sí"/"No"
-
-    # Habilidades blandas (soft skills)
     for skill in soft_skills:
         col = f"soft_{skill.replace(' ', '_')}"
-        # Aseguramos que el mapeo sea correcto, incluyendo el manejo de valores NaN
         df[col] = df['texto_skills'].str.contains(rf'\b{re.escape(skill)}\b', regex=True)
-        df[col] = df[col].map({True: 'Sí', False: 'No'}).fillna('No')
 
     # CLASIFICACIÓN DE CARRERA
     df['Subtítulo'] = df['Subtítulo'].astype(str).str.lower()
