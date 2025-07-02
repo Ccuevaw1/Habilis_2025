@@ -147,9 +147,6 @@ def procesar_datos_computrabajo(csv_path):
     # Guardar para estadísticas
     df_final = df[columnas_finales].copy()
     columnas_detectadas = [col for col in df.columns if col.startswith("hard_") or col.startswith("soft_")]
-
-    columnas_habilidades = [col for col in df_final.columns if col.startswith("hard_") or col.startswith("soft_")]
-    df_final[columnas_habilidades] = df_final[columnas_habilidades].replace({1: "Sí", 0: "No"})
     
     resumen = {
         "originales": len(df_original),
@@ -166,6 +163,8 @@ def procesar_datos_computrabajo(csv_path):
     preview_no_ingenieria = registros_no_ingenieria.fillna('').astype(str).to_dict(orient='records')
     preview_no_clasificados = registros_no_clasificados.fillna('').astype(str).to_dict(orient='records')
     preview_antes = df_original.fillna('').astype(str).to_dict(orient='records')
+    df_final[columnas_habilidades] = df_final[columnas_habilidades].replace({1: "Sí", 0: "No"})
     preview_despues = df_final.fillna('').to_dict(orient='records')
+
 
     return df_final, resumen, columnas_detectadas, preview_antes, preview_despues, preview_no_ingenieria, preview_no_clasificados

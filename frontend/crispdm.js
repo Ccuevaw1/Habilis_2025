@@ -27,6 +27,8 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
     });
 
     const data = await response.json();
+    console.log("🧪 Datos recibidos preview_despues:", data.preview_despues.slice(0, 2));
+
     
     if (!response.ok || data.error) {
       // Mostrar error específico si existe
@@ -168,21 +170,10 @@ function renderTabla(idTabla, datos) {
   const headers = Object.keys(datos[0]);
   let thead = "<thead><tr>" + headers.map(h => `<th>${h}</th>`).join('') + "</tr></thead>";
 
-  // Crear filas con cambio 1→Sí y 0→No
+  // Crear filas
   let tbody = "<tbody>";
   for (const fila of datos) {
-    tbody += "<tr>";
-    for (const h of headers) {
-      const valor = fila[h];
-      if (valor === 1) {
-        tbody += "<td>Sí</td>";
-      } else if (valor === 0) {
-        tbody += "<td>No</td>";
-      } else {
-        tbody += `<td>${valor}</td>`;
-      }
-    }
-    tbody += "</tr>";
+    tbody += "<tr>" + headers.map(h => `<td>${fila[h]}</td>`).join('') + "</tr>";
   }
   tbody += "</tbody>";
 
