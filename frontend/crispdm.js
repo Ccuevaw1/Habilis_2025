@@ -170,10 +170,21 @@ function renderTabla(idTabla, datos) {
   const headers = Object.keys(datos[0]);
   let thead = "<thead><tr>" + headers.map(h => `<th>${h}</th>`).join('') + "</tr></thead>";
 
-  // Crear filas
+  // Crear filas con clases de color
   let tbody = "<tbody>";
   for (const fila of datos) {
-    tbody += "<tr>" + headers.map(h => `<td>${fila[h]}</td>`).join('') + "</tr>";
+    tbody += "<tr>";
+    for (const h of headers) {
+      let valor = fila[h];
+      if (valor === "Sí") {
+        tbody += `<td style="color: green; font-weight: bold;">Sí</td>`;
+      } else if (valor === "No") {
+        tbody += `<td style="color: red; font-weight: bold;">No</td>`;
+      } else {
+        tbody += `<td>${valor}</td>`;
+      }
+    }
+    tbody += "</tr>";
   }
   tbody += "</tbody>";
 
