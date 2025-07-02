@@ -148,6 +148,9 @@ def procesar_datos_computrabajo(csv_path):
     df_final = df[columnas_finales].copy()
     columnas_detectadas = [col for col in df.columns if col.startswith("hard_") or col.startswith("soft_")]
 
+    columnas_habilidades = [col for col in df_final.columns if col.startswith("hard_") or col.startswith("soft_")]
+    df_final[columnas_habilidades] = df_final[columnas_habilidades].replace({1: "Sí", 0: "No"})
+    
     resumen = {
         "originales": len(df_original),
         "eliminados": len(df_original) - len(df),
