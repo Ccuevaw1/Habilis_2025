@@ -100,7 +100,7 @@ export function generarTablaHTML(data) {
       fila += columnasHabilidadesActivas.map(col => {
         const val = row[col];
         const isActive = val === 1 || val === true || val === "true" || val === "TRUE";
-        return `<td class="centrado">${isActive ? '1' : '0'}</td>`;
+        return `<td class="centrado habilidad-${isActive ? 'si' : 'no'}">${isActive ? 'Sí' : 'No'}</td>`;
       }).join('');
       
       return fila + '</tr>';
