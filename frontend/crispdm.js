@@ -168,10 +168,21 @@ function renderTabla(idTabla, datos) {
   const headers = Object.keys(datos[0]);
   let thead = "<thead><tr>" + headers.map(h => `<th>${h}</th>`).join('') + "</tr></thead>";
 
-  // Crear filas
+  // Crear filas con cambio 1→Sí y 0→No
   let tbody = "<tbody>";
   for (const fila of datos) {
-    tbody += "<tr>" + headers.map(h => `<td>${fila[h]}</td>`).join('') + "</tr>";
+    tbody += "<tr>";
+    for (const h of headers) {
+      const valor = fila[h];
+      if (valor === 1) {
+        tbody += "<td>Sí</td>";
+      } else if (valor === 0) {
+        tbody += "<td>No</td>";
+      } else {
+        tbody += `<td>${valor}</td>`;
+      }
+    }
+    tbody += "</tr>";
   }
   tbody += "</tbody>";
 
