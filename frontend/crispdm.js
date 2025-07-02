@@ -49,6 +49,7 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
     // Mostrar bloque previo (tabla sin procesar + botón)
     document.getElementById("bloque-previo").style.display = "block";
     document.getElementById("tabla-antes").innerHTML = generarTablaHTMLCruda(data.preview_antes);
+    document.getElementById("seccion-boton-procesar").style.display = "block";
 
     // Ocultar cualquier procesamiento anterior si lo hubo
     document.getElementById("bloque-procesado").style.display = "none";
