@@ -163,7 +163,8 @@ def procesar_datos_computrabajo(csv_path):
     preview_no_ingenieria = registros_no_ingenieria.fillna('').astype(str).to_dict(orient='records')
     preview_no_clasificados = registros_no_clasificados.fillna('').astype(str).to_dict(orient='records')
     preview_antes = df_original.fillna('').astype(str).to_dict(orient='records')
-    df_final[columnas_habilidades] = df_final[columnas_habilidades].replace({1: "Sí", 0: "No"})
+    columnas_habilidades = [col for col in df_final.columns if col.startswith("hard_") or col.startswith("soft_")]
+    df_final[columnas_habilidades] = df_final[columnas_habilidades].astype(int).replace({1: "Sí", 0: "No"})
     preview_despues = df_final.fillna('').to_dict(orient='records')
 
 
