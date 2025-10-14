@@ -3,106 +3,97 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Etapas CRISP-DM</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <title>Dashboard Ingeniería</title>
   <link rel="stylesheet" href="styles.css" />
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- jsPDF (necesaria para html2pdf) -->
+  <!-- html2pdf CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
-  <header class="encabezado">
-    <div class="barra-navegacion">
-      <img src="images/logo.png" alt="Logo Habilits" class="logo" />
-      <input type="file" id="inputCsv" accept=".csv" style="display: none;" />
-      <div style="display: flex; gap: 1rem; align-items: center;">
-        <button class="btn-subir" id="btnUpload">Subir CSV</button>
-        <!-- <button class="btn-subir" id="btnProcesar">Procesar CSV</button> -->
+<header class="encabezado">
+  <div class="barra-navegacion">
+    <img src="images/logo.png" alt="Logo Habilits" class="logo" />
+    <div class="barra-controles">
+      <div class="select-wrapper">
+        <select class="select-carrera" id="select-carrera">
+          <option selected disabled>Seleccionar Ingeniería</option>
+          <option>Ingeniería Industrial</option>
+          <option>Ingeniería de Sistemas</option>
+          <option>Ingeniería Civil</option>
+          <option>Ingeniería de Minas</option>
+          <option>Ingeniería Agrónoma</option>
+          <option>Ingeniería Ambiental</option>
+        </select>
       </div>
+      <input type="file" id="inputManualCsv" accept=".csv" style="display: none;" />
+      <button class="btn-exportar" id="btnExportar">EXPORTAR</button>
     </div>
-  </header>
+  </div>
+</header>
 
-  <div class="breadcrumb">
-    <a href="dashboard.html">Ir al Dashboard →</a>
+<section id="contenedor-pdf">
+  <div class="franja-blanca">
+    <h1 class="titulo-principal" id="titulo-carrera">RESULTADOS</h1>
   </div>
 
-  <div id="imagen-inicial" style="display: block; text-align: center;">
-    <img src="images\habilis.jpeg" alt="Imagen de bienvenida" style="width: 100%; max-width: 1366px; height: auto;">
+  <div class="enlace-crispdm">
+    <a href="dashboard.html">Analizar CSV</a>
   </div>
 
   <main class="dashboard-grid">
-
-    <div class="grafico-card" id="preparacion-datos-container" style="display: none; grid-column: 1 / span 2; grid-row: 4;">
-      <h3>Resumen de Preparación de los Datos</h3>
-      <ul id="resumen-preparacion" style="text-align: left; list-style-position: inside; padding-left: 0.5rem;">
-        <li>Total de registros en el CSV original: <span id="prep-total"></span></li>
-        <li>Registros eliminados: <span id="prep-eliminados"></span></li>
-        <li>Registros finales utilizados: <span id="prep-finales"></span></li>
-        <li>Registros con salario transformado: <span id="prep-salario-ok"></span></li>
-        <li>Campos nulos rellenados: <span id="prep-rellenos"></span></li>
-        <li>Columnas eliminadas: <span id="prep-columnas-eliminadas"></span></li>
-        <li>¿Caracteres limpiados?: <span id="prep-limpieza"></span></li>
-        <li>Habilidades detectadas: <span id="prep-habilidades"></span></li>
-      </ul>
+    <!--Gráfico Habilidades Técnicas -->
+    <div class="grafico-card" id="grafico-tecnicas-container" style="grid-column: 1; grid-row: 1;">
+      <h3>Habilidades Técnicas</h3>
+      <canvas id="graficoTecnicas"></canvas>
     </div>
 
-    <div id="no-ingenieria-container" class="grafico-card" style="display: none; grid-column: 1 / span 2; grid-row: 5;">
-      <h3>Registros eliminados durante el preprocesamiento</h3>
-
-      <div class="tabla-seccion">
-        <h4>No relacionados a carreras de Ingeniería</h4>
-        <div class="tabla-scroll-container">
-          <table class="tabla-estilo tabla-crudos" id="tabla-no-ingenieria"></table>
-        </div>
-      </div>
-
-      <div class="tabla-seccion">
-        <h4>No clasificados por carrera</h4>
-        <div class="tabla-scroll-container">
-          <table class="tabla-estilo tabla-crudos" id="tabla-no-clasificados"></table>
-        </div>
-      </div>
+    <!--Gráfico Habilidades Blandas -->
+    <div class="grafico-card" id="grafico-blandas-container" style="grid-column: 2; grid-row: 1;">
+      <h3>Habilidades Blandas</h3>
+      <canvas id="graficoBlandas"></canvas>
     </div>
 
-    <!-- 🔵 BLOQUE PREVIO: solo muestra tabla sin procesar y botón -->
-    <div id="bloque-previo" style="display: none; grid-column: 1 / span 2;">
-      <div class="grafico-card">
-        <h3>APLICACIÓN DEL MODELADO</h3>
-        <h4>Datos de CSV sin procesar</h4>
-        <div class="tabla-scroll-container">
-          <table class="tabla-estilo tabla-crudos" id="tabla-antes"></table>
-        </div>
-        <div id="seccion-boton-procesar" style="text-align: center; margin-top: 1rem;">
-          <button class="btn-subir" id="btnProcesar">Procesar CSV</button>
-        </div>
-      </div>
+    <!--Tabla Top 5 Soft Skills -->
+    <div class="top-card" id="tabla-blandas-container" style="grid-column: 1; grid-row: 2;">
+      <h3>Top 5 Habilidades Blandas</h3>
+      <table class="tabla-estilo" id="tabla-blandas">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Habilidad Blanda</th>
+            <th>Número de Ofertas</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
 
-    <!-- 🟢 BLOQUE PROCESADO: aparece después de hacer clic en Procesar -->
-    <div id="bloque-procesado" style="display: none; grid-column: 1 / span 2;">
-      <div class="grafico-card">
-        <h4>Datos Procesados</h4>
-        <div class="tabla-scroll-container">
-          <table class="tabla-estilo tabla-procesados" id="tabla-despues"></table>
-        </div>
-      </div>
+    <!--Tabla Top 5 Herramientas Tech -->
+    <div class="top-card" id="tabla-tecnicas-container" style="grid-column: 2; grid-row: 2;">
+      <h3>Top 5 Herramientas Técnicas</h3>
+      <table class="tabla-estilo" id="tabla-tecnicas">
+        <thead>
+          <tr>
+            <th>Ranks</th>
+            <th>Herramienta</th>
+            <th>Número de Ofertas</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
 
-    <div class="grafico-card" id="porcentaje-carreras-container" style="display: none; grid-column: 1 / span 2; grid-row: 7;">
-      <h3>VALIDAR RESULTADOS</h3>
-      <div class="tabla-scroll-container">
-        <table class="tabla-estilo" id="tabla-carreras-porcentaje">
-          <!-- Se llenará dinámicamente -->
-        </table>
-      </div>
+    <!-- Gráfico de Salarios -->
+    <div class="grafico-card" id="grafico-salarios-container" style="grid-column: 1 / span 2; grid-row: 3;">
+      <h3>Salarios por Puesto</h3>
+      <canvas id="graficoSalarios"></canvas>
     </div>
-
-    <div class="grafico-card" id="detalles-carrera-container" style="display: none; grid-column: 1 / span 2; grid-row: 8;">
-      <h3>Registros por Carrera Detectada</h3>
-      <div class="tabla-scroll-container" id="tablas-carreras-detalle">
-        <!-- Aquí se insertarán múltiples tablas -->
-      </div>
-    </div>
-
   </main>
-<script type="module" src="./crispdm.js"></script>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script type="module" src="./common.js"></script>
+<script type="module" src="./dashboard.js"></script>
 </body>
 </html>
