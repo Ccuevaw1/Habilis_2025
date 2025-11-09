@@ -11,15 +11,13 @@ from pydantic import BaseModel
 import shutil
 import json
 import os
-from dotenv import load_dotenv
-load_dotenv()
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="API Habilidades Laborales")
 
 # Configurar CORS desde variable de entorno
-allowed_origins = os.getenv("ALLOWED_ORIGINS").split(",")
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "https://habilis-2025.vercel.app").split(",")
 
 app.add_middleware(
     CORSMiddleware,
