@@ -4,3 +4,5 @@ const CONFIG = {
         ? 'http://localhost:8000'
         : 'https://habilis2025-production.up.railway.app'
 };
+
+console.log('Entorno detectado:', CONFIG.API_URL);
