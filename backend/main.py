@@ -268,8 +268,8 @@ class TiempoCargaRequest(BaseModel):
 
 @app.post("/tiempo-carga/")
 def registrar_tiempo_carga(req: TiempoCargaRequest, db: Session = Depends(get_db)):
-    inicio_dt = datetime.fromtimestamp(req.inicio) #mantener así para evitar problemas de zona horaria
-    fin_dt = datetime.fromtimestamp(req.fin) #mantener así para evitar problemas de zona horaria
+    inicio_dt = datetime.fromtimestamp(req.inicio)
+    fin_dt = datetime.fromtimestamp(req.fin)
     duracion = round((fin_dt - inicio_dt).total_seconds(), 4)
 
     nuevo_log = TiempoCarga(

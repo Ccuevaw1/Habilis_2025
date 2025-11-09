@@ -134,13 +134,17 @@ export async function registrarTiempoCarga(carrera, inicioTiempo) {
   console.log(`[DEBUG] Tiempo de identificación: ${tiempoTotal.toFixed(4)} segundos`);
 
   try {
+    // Ajustar timestamps a la zona horaria del servidor (UTC-5)
+    const offsetMinutos = new Date().getTimezoneOffset(); // Diferencia con UTC en minutos
+    const offsetSegundos = offsetMinutos * 60;
+    
     const response = await fetch(`${CONFIG.API_URL}/tiempo-carga/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         carrera,
-        inicio: inicioTiempo / 1000, // en segundos UNIX
-        fin: finTiempo / 1000
+        inicio: (inicioTiempo / 1000) - offsetSegundos,
+        fin: (finTiempo / 1000) - offsetSegundos
       })
     });
     return await response.json();
