@@ -4,15 +4,10 @@ from database import SessionLocal,Base,engine
 from models.habilidad import Habilidad
 from fastapi.middleware.cors import CORSMiddleware
 from mineria import procesar_datos_computrabajo
-from sklearn.metrics import accuracy_score
 from models.tiempo import TiempoCarga
 from datetime import datetime, timezone
-from difflib import SequenceMatcher
-from io import BytesIO
 import pandas as pd
-import unicodedata
 from pydantic import BaseModel
-from unidecode import unidecode
 import shutil
 import json
 import os
@@ -21,16 +16,18 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="API Habilidades Laborales")
 
-# Configurar CORS
+# Configurar CORS desde variable de entorno
+allowed_origins = os.getenv("ALLOWED_ORIGINS").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://habilis-2025.vercel.app"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Middleware: crear una sesión por cada solicitud
+# crear una sesión por cada solicitud
 def get_db():
     db = SessionLocal()
     try:
@@ -110,7 +107,7 @@ async def subir_csv_crudo(file: UploadFile = File(...)):
 
     # Procesar el archivo con la función del módulo mineria.py
     df = procesar_datos_computrabajo(temp_path)
-
+    # GUARDAR EL CSV PROCESADO
     df.to_csv("data/datos_procesados.csv", index=False)
 
     # Insertar los datos en la base de datos
@@ -134,6 +131,7 @@ async def subir_csv_crudo(file: UploadFile = File(...)):
 
     return {"message": f"{len(df)} registros procesados y guardados exitosamente."}
 
+# Filtramos por carrera en la consulta y directamente en la base de datos
 @app.get("/estadisticas/salarios")
 def estadisticas_salarios(carrera: str = Query(..., description="Nombre de la carrera"), db: Session = Depends(get_db)):
     registros = db.query(Habilidad).filter(Habilidad.career.ilike(f"%{carrera.strip()}%")).all()
@@ -183,7 +181,7 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
         with open(path_csv, "wb") as f:
             shutil.copyfileobj(file.file, f)
 
-        # Procesar archivo CSV (mineria.py)
+        # Procesar archivo CSV, reutilizamos la misma función de minería
         try:
             df_final, resumen, columnas_detectadas, preview_antes, preview_despues, preview_no_ingenieria, preview_no_clasificados = procesar_datos_computrabajo(path_csv)
         except ValueError as e:
@@ -265,13 +263,13 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
 
 class TiempoCargaRequest(BaseModel):
     carrera: str
-    inicio: float  # timestamp UNIX en segundos
-    fin: float     # timestamp UNIX en segundos
+    inicio: float  
+    fin: float 
 
 @app.post("/tiempo-carga/")
 def registrar_tiempo_carga(req: TiempoCargaRequest, db: Session = Depends(get_db)):
-    inicio_dt = datetime.fromtimestamp(req.inicio, timezone.utc)
-    fin_dt = datetime.fromtimestamp(req.fin, timezone.utc)
+    inicio_dt = datetime.fromtimestamp(req.inicio) #mantener así para evitar problemas de zona horaria
+    fin_dt = datetime.fromtimestamp(req.fin) #mantener así para evitar problemas de zona horaria
     duracion = round((fin_dt - inicio_dt).total_seconds(), 4)
 
     nuevo_log = TiempoCarga(

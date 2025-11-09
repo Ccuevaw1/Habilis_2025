@@ -1,6 +1,6 @@
-// CONSTANTES COMPARTIDAS
-export const API_URL = 'https://habilis2025-production.up.railway.app/estadisticas/habilidades';
-export const API_SALARIOS = 'https://habilis2025-production.up.railway.app/estadisticas/salarios';
+// CONSTANTES COMPARTIDAS - Usa CONFIG de config.js
+export const API_URL = `${CONFIG.API_URL}/estadisticas/habilidades`;
+export const API_SALARIOS = `${CONFIG.API_URL}/estadisticas/salarios`;
 
 // FUNCIONES UTILITARIAS
 function escapeHtml(text) {
@@ -118,7 +118,7 @@ export async function subirCSV(file) {
   const formData = new FormData();
   formData.append("file", file);
   
-  const response = await fetch("https://habilis2025-production.up.railway.app/proceso-csv", {
+  const response = await fetch(`${CONFIG.API_URL}/proceso-csv`, {
     method: "POST",
     body: formData
   });
@@ -134,7 +134,7 @@ export async function registrarTiempoCarga(carrera, inicioTiempo) {
   console.log(`[DEBUG] Tiempo de identificación: ${tiempoTotal.toFixed(4)} segundos`);
 
   try {
-    const response = await fetch(`https://habilis2025-production.up.railway.app/tiempo-carga/`, {
+    const response = await fetch(`${CONFIG.API_URL}/tiempo-carga/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
