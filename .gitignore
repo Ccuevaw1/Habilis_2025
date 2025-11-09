@@ -6,7 +6,3 @@ __pycache__/
 *.env
 *.csv
 *.json
-
-# Configuración del frontend
-frontend/config.js
-
