@@ -1,13 +1,9 @@
 import pandas as pd
 import re
-from sklearn.base import BaseEstimator, TransformerMixin
+#from sklearn.base import BaseEstimator, TransformerMixin
 
+#USAR LA MISMA FUNCIÓN DE MINERÍA
 def procesar_datos_computrabajo(csv_path):
-    """
-    Procesa un archivo CSV crudo de Computrabajo.
-    Detecta carrera, habilidades técnicas y blandas,
-    y devuelve un DataFrame limpio y estructurado.
-    """
     # Leer archivo CSV
     try:
         df_original = pd.read_csv(csv_path, sep=';', encoding='utf-8', on_bad_lines='skip')

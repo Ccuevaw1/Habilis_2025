@@ -21,7 +21,7 @@ document.getElementById("inputCsv").addEventListener("change", async function ()
   formData.append("file", file);
 
   try {
-    const response = await fetch("https://habilis2025-production.up.railway.app/proceso-csv", {
+    const response = await fetch(`${CONFIG.API_URL}/proceso-csv`, {
       method: "POST",
       body: formData
     });
