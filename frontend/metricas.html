@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Métricas de Recursos</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .metricas-container {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    .metrica-card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 15px 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .metrica-titulo {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
+    .metrica-dato {
+      display: inline-block;
+      margin: 5px 15px;
+      padding: 8px 12px;
+      background: #f0f0f0;
+      border-radius: 4px;
+    }
+    .estadisticas-generales {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+    }
+    .stat-box {
+      display: inline-block;
+      margin: 10px 20px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 2em;
+      font-weight: bold;
+    }
+    .stat-label {
+      font-size: 0.9em;
+      opacity: 0.9;
+    }
+    .energia-box {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+    }
+    .energia-detalle {
+      display: inline-block;
+      margin: 15px 25px;
+      text-align: center;
+    }
+    .energia-valor {
+      font-size: 2.5em;
+      font-weight: bold;
+      display: block;
+    }
+    .energia-label {
+      font-size: 0.9em;
+      opacity: 0.9;
+      margin-top: 5px;
+    }
+    .equivalencia {
+      background: rgba(255,255,255,0.2);
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      font-size: 1.1em;
+    }
+    .paginacion {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      margin: 30px 0;
+      padding: 20px;
+    }
+    .btn-paginacion {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background 0.3s;
+    }
+    .btn-paginacion:hover {
+      background: #5568d3;
+    }
+    .btn-paginacion:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .info-paginacion {
+      font-size: 1.1em;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+  </style>
+</head>
+<body>
+  <header class="encabezado">
+    <div class="barra-navegacion">
+      <img src="images/logo.png" alt="Logo Habilits" class="logo">
+      <h2>Monitoreo de Recursos del Sistema</h2>
+      <a href="index.html" class="btn-exportar">Volver al Dashboard</a>
+    </div>
+  </header>
+
+  <div class="metricas-container">
+    <h1>📊 Consumo de Recursos por Consulta</h1>
+    
+    <!-- Estadísticas Generales (siempre visible) -->
+    <div class="estadisticas-generales" id="stats-generales"></div>
+    
+    <!-- Consumo Energético (siempre visible) -->
+    <div class="energia-box" id="stats-energia"></div>
+    
+    <!-- Lista de consultas (paginada) -->
+    <div id="metricas-list"></div>
+    
+    <!-- Controles de paginación -->
+    <div class="paginacion">
+      <button class="btn-paginacion" id="btn-anterior">← Anterior</button>
+      <span class="info-pagina" id="info-pagina"></span>
+      <button class="btn-paginacion" id="btn-siguiente">Siguiente →</button>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    let metricasGlobales = [];
+    let paginaActual = 1;
+    const consultasPorPagina = 10;
+
+    async function cargarMetricas() {
+      try {
+        const response = await fetch(`${CONFIG.API_URL}/obtener-metricas/`);
+        const data = await response.json();
+        
+        metricasGlobales = data.metricas.reverse(); // Más recientes primero
+        mostrarEstadisticas(data.estadisticas);
+        mostrarPagina(paginaActual);
+        actualizarControlesPaginacion();
+      } catch (error) {
+        document.getElementById('metricas-list').innerHTML = 
+          '<p class="error">Error cargando métricas</p>';
+      }
+    }
+
+    function mostrarPagina(pagina) {
+      const inicio = (pagina - 1) * consultasPorPagina;
+      const fin = inicio + consultasPorPagina;
+      const metricasPagina = metricasGlobales.slice(inicio, fin);
+      
+      const container = document.getElementById('metricas-list');
+      container.innerHTML = metricasPagina.map((m, i) => `
+        <div class="metrica-card">
+          <div class="metrica-titulo">
+            🔍 Consulta #${inicio + i + 1} - ${m.carrera}
+          </div>
+          <div>
+            <span class="metrica-dato">⏱️ Tiempo: ${m.tiempo_total_seg}s</span>
+            <span class="metrica-dato">💻 CPU: ${m.cpu_promedio_percent}%</span>
+            <span class="metrica-dato">🧠 RAM: ${m.ram_promedio_mb.toFixed(2)} MB</span>
+            <span class="metrica-dato">⚡ Energía: ${m.energia_wh?.toFixed(6) || 0} Wh</span>
+            <span class="metrica-dato">🌱 CO2: ${m.co2_gramos?.toFixed(4) || 0} g</span>
+            <span class="metrica-dato">📅 ${new Date(m.timestamp).toLocaleString()}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function actualizarControlesPaginacion() {
+      const totalPaginas = Math.ceil(metricasGlobales.length / consultasPorPagina);
+      
+      document.getElementById('info-pagina').textContent = 
+        `Página ${paginaActual} de ${totalPaginas}`;
+      
+      document.getElementById('btn-anterior').disabled = paginaActual === 1;
+      document.getElementById('btn-siguiente').disabled = paginaActual === totalPaginas;
+    }
+
+    document.getElementById('btn-anterior').addEventListener('click', () => {
+      if (paginaActual > 1) {
+        paginaActual--;
+        mostrarPagina(paginaActual);
+        actualizarControlesPaginacion();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+
+    document.getElementById('btn-siguiente').addEventListener('click', () => {
+      const totalPaginas = Math.ceil(metricasGlobales.length / consultasPorPagina);
+      if (paginaActual < totalPaginas) {
+        paginaActual++;
+        mostrarPagina(paginaActual);
+        actualizarControlesPaginacion();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+
+    function mostrarEstadisticas(stats) {
+      document.getElementById('stats-generales').innerHTML = `
+        <h2>📈 Estadísticas de Recursos</h2>
+        <div>
+          <div class="stat-box">
+            <div class="stat-value">${stats.total_consultas}</div>
+            <div class="stat-label">Total Consultas</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value">${stats.cpu_promedio}%</div>
+            <div class="stat-label">CPU Promedio</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value">${stats.ram_promedio} MB</div>
+            <div class="stat-label">RAM Promedio</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value">${stats.tiempo_promedio}s</div>
+            <div class="stat-label">Tiempo Promedio</div>
+          </div>
+        </div>
+      `;
+      
+      const kwh_total = (stats.energia_total_wh / 1000).toFixed(6);
+      const minutos_led = ((stats.energia_promedio_wh / 10) * 60).toFixed(1);
+      
+      document.getElementById('stats-energia').innerHTML = `
+        <h2>⚡ Consumo Energético y Huella de Carbono</h2>
+        <div>
+          <div class="energia-detalle">
+            <span class="energia-valor">${stats.energia_total_wh.toFixed(4)} Wh</span>
+            <span class="energia-label">Energía Total<br>(${kwh_total} kWh)</span>
+          </div>
+          <div class="energia-detalle">
+            <span class="energia-valor">${stats.co2_total_gramos.toFixed(2)} g</span>
+            <span class="energia-label">CO₂ Total</span>
+          </div>
+          <div class="energia-detalle">
+            <span class="energia-valor">${(stats.energia_promedio_wh * 1000000).toFixed(2)} µWh</span>
+            <span class="energia-label">Energía por Consulta</span>
+          </div>
+        </div>
+        <div class="equivalencia">
+          💡 <strong>Equivalencia:</strong> Cada consulta consume lo mismo que encender un LED de 10W por ${minutos_led} minutos
+        </div>
+      `;
+    }
+
+    cargarMetricas();
+  </script>
+</body>
+</html>

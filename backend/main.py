@@ -11,6 +11,8 @@ from pydantic import BaseModel
 import shutil
 import json
 import os
+from monitor_recursos import MonitorRecursos
+from calcular_energia import calcular_energia_por_consulta
 
 Base.metadata.create_all(bind=engine)
 
@@ -52,20 +54,27 @@ def formatear_nombre(nombre: str) -> str:
 
 @app.get("/estadisticas/habilidades")
 def estadisticas_habilidades(carrera: str = Query(..., description="Nombre de la carrera"), db: Session = Depends(get_db)):
+    # Iniciar monitoreo
+    monitor = MonitorRecursos()
+    monitor.iniciar_monitoreo()
+    
     carrera = carrera.strip()
     registros = db.query(Habilidad).filter(Habilidad.career.ilike(f"%{carrera}%")).all()
+    monitor.capturar_metrica()  # Captura después de la consulta DB
 
     if not registros:
         return {"message": "No se encontraron resultados para esa carrera."}
 
     df = pd.DataFrame([r.__dict__ for r in registros])
     df.drop(columns=["_sa_instance_state", "id"], inplace=True)
+    monitor.capturar_metrica()  # Captura después de procesar DataFrame
 
     columnas_tecnicas = [col for col in df.columns if col.startswith("hard_")]
     columnas_blandas = [col for col in df.columns if col.startswith("soft_")]
 
     tecnicas_sumadas = df[columnas_tecnicas].sum().sort_values(ascending=False)
     blandas_sumadas = df[columnas_blandas].sum().sort_values(ascending=False)
+    monitor.capturar_metrica()  # Captura después de calcular habilidades
 
     habilidades_tecnicas = [
         {"nombre": formatear_nombre(col), "frecuencia": int(tecnicas_sumadas[col])}
@@ -77,11 +86,25 @@ def estadisticas_habilidades(carrera: str = Query(..., description="Nombre de la
         for col in blandas_sumadas.index
     ]
 
+    # Finalizar monitoreo
+    metricas = monitor.finalizar_monitoreo()
+    
+    # Guardar métricas en archivo para análisis
+    with open("data/metricas_recursos.json", "a") as f:
+        json.dump({
+            "endpoint": "/estadisticas/habilidades",
+            "carrera": carrera,
+            "timestamp": datetime.now().isoformat(),
+            **metricas
+        }, f)
+        f.write("\n")
+
     return {
         "carrera": carrera,
         "total_ofertas": len(df),
         "habilidades_tecnicas": habilidades_tecnicas,
-        "habilidades_blandas": habilidades_blandas
+        "habilidades_blandas": habilidades_blandas,
+        "metricas_recursos": metricas  # Incluir en respuesta
     }
 
 @app.get("/estado-csv-procesado")
@@ -305,3 +328,43 @@ def obtener_registros_eliminados():
         "no_ingenieria": no_ingenieria,
         "no_clasificados": no_clasificados
     }
+
+@app.get("/obtener-metricas/")
+def obtener_metricas():
+    try:
+        with open("data/metricas_recursos.json", "r") as f:
+            lineas = f.readlines()
+        
+        metricas = [json.loads(l) for l in lineas]
+        
+        # Calcular estadísticas de recursos
+        cpu_prom = sum(m['cpu_promedio_percent'] for m in metricas) / len(metricas)
+        ram_prom = sum(m['ram_promedio_mb'] for m in metricas) / len(metricas)
+        tiempo_prom = sum(m['tiempo_total_seg'] for m in metricas) / len(metricas)
+        
+        # Calcular energía para cada consulta
+        total_energia = 0
+        total_co2 = 0
+        for m in metricas:
+            calculo = calcular_energia_por_consulta(m)
+            m['energia_wh'] = calculo['energia_wh']
+            m['co2_gramos'] = calculo['co2_gramos']
+            total_energia += calculo['energia_wh']
+            total_co2 += calculo['co2_gramos']
+        
+        energia_promedio = total_energia / len(metricas) if len(metricas) > 0 else 0
+        
+        return {
+            "metricas": metricas,
+            "estadisticas": {
+                "total_consultas": len(metricas),
+                "cpu_promedio": round(cpu_prom, 2),
+                "ram_promedio": round(ram_prom, 2),
+                "tiempo_promedio": round(tiempo_prom, 4),
+                "energia_total_wh": round(total_energia, 4),
+                "co2_total_gramos": round(total_co2, 2),
+                "energia_promedio_wh": round(energia_promedio, 6)
+            }
+        }
+    except FileNotFoundError:
+        return {"metricas": [], "estadisticas": {}}
