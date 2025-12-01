@@ -29,7 +29,7 @@ print(f"\nValores actuales:")
 print(f"  RSS / Working Set:       {rss:.2f} MB")
 print(f"  Working Set (total):     {wset:.2f} MB")
 print(f"  Private Working Set:     {private:.2f} MB")
-print(f"  USS (Unique Set Size):   {uss:.2f} MB")
+print(f"  USS (Unique Set Size):   {uss:.2f} MBr")
 
 print(f"\nSugerencia de comparación:")
 print(f"  - Pestaña 'Procesos' → columna Memory ≈ USS ≈ {uss:.2f} MB")

@@ -59,15 +59,36 @@ def procesar_datos_computrabajo(csv_path):
         'liderazgo', 'responsabilidad', 'creatividad', 'resolución de problemas',
         'orientación al cliente', 'pensamiento crítico'
     ]
+    
+    # Crear diccionario con TODOS los patrones y nombres de columnas
+    all_patterns = {}
     for skill in hard_skills:
-        col = f"hard_{skill.replace('/', '_').replace(' ', '_')}"
-        df[col] = df['texto_skills'].str.contains(rf'\b{re.escape(skill)}\b', regex=True)
+        col_name = f"hard_{skill.replace('/', '_').replace(' ', '_')}"
+        all_patterns[col_name] = re.compile(rf'\b{re.escape(skill)}\b', re.IGNORECASE)
+    
     for skill in soft_skills:
-        col = f"soft_{skill.replace(' ', '_')}"
-        df[col] = df['texto_skills'].str.contains(rf'\b{re.escape(skill)}\b', regex=True)
+        col_name = f"soft_{skill.replace(' ', '_')}"
+        all_patterns[col_name] = re.compile(rf'\b{re.escape(skill)}\b', re.IGNORECASE)
+    
+    # Función que aplica TODOS los patrones en una sola pasada
+    def detectar_todas_habilidades(texto):
+        if not isinstance(texto, str):
+            return {col: False for col in all_patterns.keys()}
+        
+        texto_lower = texto.lower()
+        return {col: bool(pattern.search(texto_lower)) for col, pattern in all_patterns.items()}
+    
+    # Aplicar la función UNA SOLA VEZ por fila (en lugar de 41 veces)
+    print("Detectando habilidades en una sola pasada...")
+    resultados_skills = df['texto_skills'].apply(detectar_todas_habilidades)
+    
+    # Convertir resultados a columnas del DataFrame
+    df_skills = pd.DataFrame(resultados_skills.tolist(), index=df.index)
+    df = pd.concat([df, df_skills], axis=1)
 
     # CLASIFICACIÓN DE CARRERA
     df['Subtítulo'] = df['Subtítulo'].astype(str).str.lower()
+    
     carrera_keywords = {
         'Ingeniería de Sistemas': ['network engineer', 'ingeniería de sistemas', 'ing. sistemas', 'sistemas', 'informática', 'ciencia de datos', 'python', 'java', 'sql'],
         'Ingeniería de Minas': ['ingeniería de minas', 'minería', 'voladura', 'mina', 'unidad minera'],
@@ -76,23 +97,73 @@ def procesar_datos_computrabajo(csv_path):
         'Ingeniería Ambiental': ['ingeniería ambiental', 'medio ambiente', 'impacto ambiental', 'residuos'],
         'Ingeniería Agrónoma': ['ingeniería agrónoma', 'cultivos', 'agronomía', 'ingeniero agrónomo', 'agroindustria', 'agrícola']
     }
+    
+    # Keywords principales para búsqueda rápida (sin regex)
+    keywords_principales = {
+        'Ingeniería de Sistemas': ['sistemas', 'python', 'java', 'sql'],
+        'Ingeniería de Minas': ['minería', 'mina', 'voladura'],
+        'Ingeniería Industrial': ['industrial', 'producción', 'logística'],
+        'Ingeniería Civil': ['civil', 'autocad', 'obra'],
+        'Ingeniería Ambiental': ['ambiental', 'residuos', 'medio ambiente'],
+        'Ingeniería Agrónoma': ['agrónoma', 'cultivos', 'agrícola']
+    }
+    
+    # Pre-compilar patrones regex (solo una vez)
+    carrera_patterns = {
+        carrera: [re.compile(rf'\b{re.escape(kw)}\b', re.IGNORECASE) for kw in keywords]
+        for carrera, keywords in carrera_keywords.items()
+    }
 
-    def detectar_carrera_por_campos(Título, Subtítulo, Descripcion, Requerimientos):
-        texto_total = f"{Título} {Subtítulo} {Descripcion} {Requerimientos}".lower()
+    def detectar_carrera_optimizada(titulo, subtitulo, descripcion, requerimientos):
+        """Clasifica carrera con salida temprana para reducir búsquedas"""
+        # Convertir campos a lowercase una sola vez
+        campos = [
+            str(titulo).lower(),
+            str(subtitulo).lower(),
+            str(descripcion).lower(),
+            str(requerimientos).lower()
+        ]
         
-        puntajes = {c: sum(1 for kw in kws if re.search(rf'\b{re.escape(kw)}\b', texto_total)) for c, kws in carrera_keywords.items()}
+        # PASO 1: Búsqueda rápida con keywords principales (substring, sin regex)
+        for carrera, kws_principales in keywords_principales.items():
+            for campo in campos:
+                if any(kw in campo for kw in kws_principales):
+                    return carrera  # Salida temprana
         
-        if any(puntajes.values()):
+        # PASO 2: Solo si no hubo match, hacer búsqueda regex completa
+        puntajes = {}
+        for carrera, patterns in carrera_patterns.items():
+            score = 0
+            for campo in campos:
+                for pattern in patterns:
+                    if pattern.search(campo):
+                        score += 1
+                        if score >= 2:  
+                            return carrera
+            
+            if score > 0:
+                puntajes[carrera] = score
+        
+        # PASO 3: Si hay puntajes pero ninguno llegó a 2, devolver el mayor
+        if puntajes:
             return max(puntajes, key=puntajes.get)
         
+        # PASO 4: términos genéricos
+        texto_total = ' '.join(campos)
         if 'ingeniero' in texto_total or 'ing.' in texto_total:
-            for carrera, kws in carrera_keywords.items():
-                if any(re.search(rf'\b{re.escape(kw)}\b', texto_total) for kw in kws):
+            for carrera, patterns in carrera_patterns.items():
+                if any(p.search(texto_total) for p in patterns[:2]):  # Solo primeros 2 patterns
                     return carrera
+        
         return 'No clasificado'
 
-    df['Carrera Detectada'] = df.apply(lambda row: detectar_carrera_por_campos(
-        row['Título'], row['Subtítulo'], row['Descripción'], row['Requerimientos']), axis=1)
+    print("Clasificando carreras con algoritmo optimizado...")
+    df['Carrera Detectada'] = df.apply(
+        lambda row: detectar_carrera_optimizada(
+            row['Título'], row['Subtítulo'], row['Descripción'], row['Requerimientos']
+        ), 
+        axis=1
+    )
 
     df_con_carrera = df.copy()
     df = df[df['Carrera Detectada'] != 'No clasificado'].copy()

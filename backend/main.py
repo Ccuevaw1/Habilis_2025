@@ -5,7 +5,7 @@ from models.habilidad import Habilidad
 from fastapi.middleware.cors import CORSMiddleware
 from mineria import procesar_datos_computrabajo
 from models.tiempo import TiempoCarga
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import pandas as pd
 from pydantic import BaseModel
 import shutil
@@ -52,14 +52,43 @@ def formatear_nombre(nombre: str) -> str:
     partes = nombre.split('_')[1:]  # elimina el prefijo 'hard_' o 'soft_'
     return ' '.join(partes).capitalize()  # puedes usar .title() si quieres Todo En Mayúscula Inicial
 
+CACHE_DURACION = timedelta(minutes=5)
+cache_estadisticas: dict[str, tuple[dict, datetime]] = {}
+
+def _cache_get(key: str):
+    item = cache_estadisticas.get(key)
+    if not item:
+        return None
+    data, ts = item
+    if datetime.now() - ts > CACHE_DURACION:
+        del cache_estadisticas[key]
+        return None
+    return data
+
+def _cache_set(key: str, data: dict):
+    cache_estadisticas[key] = (data, datetime.now())
+    _limpiar_cache_viejo()
+
+def _limpiar_cache_viejo():
+    now = datetime.now()
+    expirados = [k for k, (_, ts) in cache_estadisticas.items() if now - ts > CACHE_DURACION]
+    for k in expirados:
+        del cache_estadisticas[k]
+# ===============================================
+
 @app.get("/estadisticas/habilidades")
 def estadisticas_habilidades(carrera: str = Query(..., description="Nombre de la carrera"), db: Session = Depends(get_db)):
-    # Iniciar monitoreo
+    # HIT de caché
+    cache_key = f"habilidades:{carrera.strip().lower()}"
+    cached = _cache_get(cache_key)
+    if cached:
+        return {**cached, "cache": True}
+
     monitor = MonitorRecursos()
     monitor.iniciar_monitoreo()
     
     carrera = carrera.strip()
-    registros = db.query(Habilidad).filter(Habilidad.career.ilike(f"%{carrera}%")).all()
+    registros = db.query(Habilidad).filter(Habilidad.career.ilike(f"%{carrera}%")).all() #consultar
     monitor.capturar_metrica()  # Captura después de la consulta DB
 
     if not registros:
@@ -99,13 +128,16 @@ def estadisticas_habilidades(carrera: str = Query(..., description="Nombre de la
         }, f)
         f.write("\n")
 
-    return {
+    resultado = {
         "carrera": carrera,
         "total_ofertas": len(df),
         "habilidades_tecnicas": habilidades_tecnicas,
         "habilidades_blandas": habilidades_blandas,
         "metricas_recursos": metricas  # Incluir en respuesta
     }
+    # Guardar en caché
+    _cache_set(cache_key, resultado)
+    return resultado
 
 @app.get("/estado-csv-procesado")
 def obtener_estado_csv():
@@ -157,6 +189,12 @@ async def subir_csv_crudo(file: UploadFile = File(...)):
 # Filtramos por carrera en la consulta y directamente en la base de datos
 @app.get("/estadisticas/salarios")
 def estadisticas_salarios(carrera: str = Query(..., description="Nombre de la carrera"), db: Session = Depends(get_db)):
+    # HIT de caché
+    cache_key = f"salarios:{carrera.strip().lower()}"
+    cached = _cache_get(cache_key)
+    if cached:
+        return {**cached, "cache": True}
+
     registros = db.query(Habilidad).filter(Habilidad.career.ilike(f"%{carrera.strip()}%")).all()
 
     if not registros:
@@ -188,12 +226,15 @@ def estadisticas_salarios(carrera: str = Query(..., description="Nombre de la ca
     # Ordenar de menor a mayor para la gráfica
     df = df.sort_values(by="salario_numerico", ascending=True)
 
-    return {
+    resultado = {
         "salarios": [
             {"puesto": row["title"], "salario": row["salario_numerico"]}
             for _, row in df.iterrows()
         ]
     }
+    # Guardar en caché
+    _cache_set(cache_key, resultado)
+    return resultado
 
 @app.post("/proceso-csv")
 async def proceso_csv_crudo(file: UploadFile = File(...)):
@@ -201,8 +242,22 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
         # Guardar el archivo temporalmente
         os.makedirs("data", exist_ok=True)
         path_csv = "data/upload.csv"
+        
+        # Iniciar monitoreo ANTES de guardar
+        monitor = MonitorRecursos()
+        monitor.iniciar_monitoreo()
+        
         with open(path_csv, "wb") as f:
             shutil.copyfileobj(file.file, f)
+        
+        # Obtener información del archivo
+        file_size_bytes = os.path.getsize(path_csv)
+        file_size_mb = file_size_bytes / (1024 * 1024)
+        file_name = file.filename
+        
+        print(f"📁 Archivo recibido: {file_name} ({file_size_mb:.2f} MB)")
+        
+        monitor.capturar_metrica()  # Después de guardar archivo
 
         # Procesar archivo CSV, reutilizamos la misma función de minería
         try:
@@ -213,6 +268,8 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
                 "error": "Contenido CSV inválido",
                 "suggestion": "Verifique que el archivo contenga datos válidos en las columnas requeridas"
             }
+
+        monitor.capturar_metrica()  # Después de procesar
 
        # Asegurar que ambos previews sean listas válidas (ya vienen como dicts)
         if not isinstance(preview_antes, list):
@@ -240,7 +297,7 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
             "habilidades": resumen["habilidades"]
         }
         
-        # Guardar registros eliminados como archivos .jsonAdd commentMore actions
+        # Guardar registros eliminados como archivos .json
         with open("data/registros_no_ingenieria.json", "w", encoding="utf-8") as f1:
             json.dump(preview_no_ingenieria, f1, ensure_ascii=False, indent=2)
 
@@ -264,6 +321,34 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
             db.add(habilidad)
         db.commit()
         db.close()
+        
+        monitor.capturar_metrica()  # Después de insertar en BD
+        
+        # Finalizar monitoreo
+        metricas = monitor.finalizar_monitoreo()
+        
+        print(f"📊 Métricas capturadas: {metricas}")
+        
+        # Guardar métricas del procesamiento CSV
+        metricas_csv = {
+            "timestamp": datetime.now().isoformat(),
+            "nombre_archivo": file_name,
+            "peso_mb": round(file_size_mb, 2),
+            "registros_originales": resumen["originales"],
+            "registros_finales": resumen["finales"],
+            "registros_eliminados": resumen["eliminados"],
+            **metricas
+        }
+        
+        # Asegurar que la carpeta data existe
+        os.makedirs("data", exist_ok=True)
+        ruta_metricas = "data/metricas_csv_procesado.json"
+        
+        with open(ruta_metricas, "w", encoding="utf-8") as f:
+            json.dump(metricas_csv, f, ensure_ascii=False, indent=2)
+        
+        print(f"✅ Métricas guardadas en: {ruta_metricas}")
+        print(f"✅ Contenido guardado: {json.dumps(metricas_csv, indent=2, ensure_ascii=False)}")
 
         return {
             "message": f"{len(df_final)} registros procesados y guardados exitosamente.",
@@ -271,7 +356,8 @@ async def proceso_csv_crudo(file: UploadFile = File(...)):
             "preview_antes": preview_antes,
             "preview_despues": preview_despues,
             "no_ingenieria": preview_no_ingenieria,
-            "no_clasificados": preview_no_clasificados
+            "no_clasificados": preview_no_clasificados,
+            "metricas_procesamiento": metricas_csv  # Incluir métricas en respuesta
         }
 
     except Exception as e:
@@ -368,3 +454,46 @@ def obtener_metricas():
         }
     except FileNotFoundError:
         return {"metricas": [], "estadisticas": {}}
+
+@app.get("/cache/estado")
+def estado_cache():
+    _limpiar_cache_viejo()
+    return {
+        "entradas_activas": len(cache_estadisticas),
+        "carreras_cacheadas": [key.replace("habilidades:", "").replace("salarios:", "") for key in cache_estadisticas.keys()],
+        "duracion_cache_minutos": CACHE_DURACION.total_seconds() / 60
+    }
+
+@app.delete("/cache/limpiar")
+def limpiar_cache():
+    cache_estadisticas.clear()
+    return {"message": "Caché limpiado exitosamente"}
+
+@app.get("/metricas-csv-procesado/")
+def obtener_metricas_csv():
+    """Obtiene las métricas del último CSV procesado"""
+    ruta = "data/metricas_csv_procesado.json"
+    print(f"🔍 Intentando leer: {ruta}")
+    print(f"📁 ¿Existe el archivo?: {os.path.exists(ruta)}")
+    
+    try:
+        with open(ruta, "r", encoding="utf-8") as f:
+            metricas = json.load(f)
+        
+        print(f"✅ Métricas leídas correctamente: {list(metricas.keys())}")
+        
+        # Agregar flag de éxito
+        metricas["existe"] = True
+        return metricas
+    except FileNotFoundError:
+        print(f"❌ Archivo no encontrado: {ruta}")
+        return {
+            "mensaje": "No hay métricas de procesamiento disponibles",
+            "existe": False
+        }
+    except Exception as e:
+        print(f"❌ Error al leer métricas: {str(e)}")
+        return {
+            "mensaje": f"Error al leer métricas: {str(e)}",
+            "existe": False
+        }

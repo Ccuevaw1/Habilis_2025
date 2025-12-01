@@ -80,6 +80,40 @@
       margin-top: 20px;
       font-size: 1.1em;
     }
+    .csv-procesado-box {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+    }
+    .csv-detalle {
+      display: inline-block;
+      margin: 15px 25px;
+      text-align: center;
+    }
+    .csv-valor {
+      font-size: 2em;
+      font-weight: bold;
+      display: block;
+    }
+    .csv-label {
+      font-size: 0.9em;
+      opacity: 0.9;
+      margin-top: 5px;
+    }
+    .csv-nombre {
+      background: rgba(255,255,255,0.2);
+      padding: 10px 15px;
+      border-radius: 6px;
+      margin-top: 15px;
+      font-size: 1.1em;
+      display: inline-block;
+    }
+    .no-data {
+      opacity: 0.7;
+      font-style: italic;
+    }
     .paginacion {
       display: flex;
       justify-content: center;
@@ -122,13 +156,18 @@
   </header>
 
   <div class="metricas-container">
-    <h1>📊 Consumo de Recursos por Consulta</h1>
+    <h1>Monitoreo de Recursos del Sistema</h1>
+    
+    <!-- Métricas del CSV Procesado (nuevo bloque) -->
+    <div class="csv-procesado-box" id="stats-csv"></div>
     
     <!-- Estadísticas Generales (siempre visible) -->
     <div class="estadisticas-generales" id="stats-generales"></div>
     
     <!-- Consumo Energético (siempre visible) -->
     <div class="energia-box" id="stats-energia"></div>
+    
+    <h2 style="margin-top: 40px; color: #2c3e50;">📊 Consumo por Consulta</h2>
     
     <!-- Lista de consultas (paginada) -->
     <div id="metricas-list"></div>
@@ -149,16 +188,108 @@
 
     async function cargarMetricas() {
       try {
+        // Cargar métricas del CSV procesado PRIMERO
+        await cargarMetricasCSV();
+        
         const response = await fetch(`${CONFIG.API_URL}/obtener-metricas/`);
         const data = await response.json();
         
-        metricasGlobales = data.metricas.reverse(); // Más recientes primero
+        metricasGlobales = data.metricas.reverse();
         mostrarEstadisticas(data.estadisticas);
         mostrarPagina(paginaActual);
         actualizarControlesPaginacion();
       } catch (error) {
+        console.error('Error cargando métricas generales:', error);
         document.getElementById('metricas-list').innerHTML = 
           '<p class="error">Error cargando métricas</p>';
+      }
+    }
+
+    async function cargarMetricasCSV() {
+      try {
+        console.log('🔍 Solicitando métricas CSV al backend...');
+        const response = await fetch(`${CONFIG.API_URL}/metricas-csv-procesado/`);
+        const data = await response.json();
+        
+        console.log('📦 Datos recibidos del backend:', data);
+        console.log('🔑 Campos en data:', Object.keys(data));
+        console.log('✅ ¿Existe campo "existe"?:', data.existe);
+        
+        // Verificar si NO hay datos
+        if (data.existe === false) {
+          console.log('❌ Backend indica que no hay datos (existe=false)');
+          document.getElementById('stats-csv').innerHTML = `
+            <h2>📁 Procesamiento de CSV</h2>
+            <p class="no-data">No hay datos de procesamiento disponibles. Sube un archivo CSV para ver las métricas.</p>
+          `;
+          return;
+        }
+        
+        // SI HAY DATOS, mostrarlos
+        console.log('✅ Datos válidos encontrados, generando HTML...');
+        
+        // Formatear fecha: día/mes/año hora
+        const fechaObj = new Date(data.timestamp);
+        const dia = String(fechaObj.getDate()).padStart(2, '0');
+        const mes = String(fechaObj.getMonth() + 1).padStart(2, '0');
+        const anio = fechaObj.getFullYear();
+        const hora = fechaObj.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+        const fecha = `${dia}/${mes}/${anio}, ${hora}`;
+        
+        console.log(`📊 Datos procesados:
+          - Archivo: ${data.nombre_archivo}
+          - Peso: ${data.peso_mb} MB
+          - Registros: ${data.registros_finales}/${data.registros_originales}
+          - RAM Max: ${data.ram_max_mb} MB
+          - CPU: ${data.cpu_promedio_percent}%
+        `);
+        
+        document.getElementById('stats-csv').innerHTML = `
+          <h2>📁 Último CSV Procesado</h2>
+          <div class="csv-nombre">
+            📄 ${data.nombre_archivo}
+          </div>
+          <div>
+            <div class="csv-detalle">
+              <span class="csv-valor">${data.peso_mb} MB</span>
+              <span class="csv-label">Tamaño del Archivo</span>
+            </div>
+            <div class="csv-detalle">
+              <span class="csv-valor">${data.registros_originales.toLocaleString()}</span>
+              <span class="csv-label">Registros Originales</span>
+            </div>
+            <div class="csv-detalle">
+              <span class="csv-valor">${data.registros_finales.toLocaleString()}</span>
+              <span class="csv-label">Registros Procesados</span>
+            </div>
+            <div class="csv-detalle">
+              <span class="csv-valor">${data.tiempo_total_seg}s</span>
+              <span class="csv-label">Tiempo de Procesamiento</span>
+            </div>
+          </div>
+          <div>
+            <div class="csv-detalle">
+              <span class="csv-valor">${data.cpu_promedio_percent}%</span>
+              <span class="csv-label">CPU Promedio</span>
+            </div>
+            <div class="csv-detalle">
+              <span class="csv-valor">${data.ram_promedio_mb.toFixed(2)} MB</span>
+              <span class="csv-label">RAM Promedio</span>
+            </div>
+          </div>
+          <div class="equivalencia">
+            📅 Procesado el ${fecha}
+          </div>
+        `;
+        
+        console.log('✅ HTML generado correctamente');
+        
+      } catch (error) {
+        console.error('❌ Error al cargar métricas CSV:', error);
+        document.getElementById('stats-csv').innerHTML = `
+          <h2>📁 Procesamiento de CSV</h2>
+          <p class="no-data">Error al cargar métricas: ${error.message}</p>
+        `;
       }
     }
 
@@ -168,10 +299,22 @@
       const metricasPagina = metricasGlobales.slice(inicio, fin);
       
       const container = document.getElementById('metricas-list');
-      container.innerHTML = metricasPagina.map((m, i) => `
+      container.innerHTML = metricasPagina.map((m, i) => {
+        // Calcular número real: total - posición en el array
+        const numeroReal = metricasGlobales.length - (inicio + i);
+        
+        // Formatear fecha: dd/mm/yyyy, hora
+        const fechaObj = new Date(m.timestamp);
+        const dia = String(fechaObj.getDate()).padStart(2, '0');
+        const mes = String(fechaObj.getMonth() + 1).padStart(2, '0');
+        const anio = fechaObj.getFullYear();
+        const hora = fechaObj.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+        const fechaFormateada = `${dia}/${mes}/${anio}, ${hora}`;
+        
+        return `
         <div class="metrica-card">
           <div class="metrica-titulo">
-            🔍 Consulta #${inicio + i + 1} - ${m.carrera}
+            🔍 Consulta #${numeroReal} - ${m.carrera}
           </div>
           <div>
             <span class="metrica-dato">⏱️ Tiempo: ${m.tiempo_total_seg}s</span>
@@ -179,10 +322,10 @@
             <span class="metrica-dato">🧠 RAM: ${m.ram_promedio_mb.toFixed(2)} MB</span>
             <span class="metrica-dato">⚡ Energía: ${m.energia_wh?.toFixed(6) || 0} Wh</span>
             <span class="metrica-dato">🌱 CO2: ${m.co2_gramos?.toFixed(4) || 0} g</span>
-            <span class="metrica-dato">📅 ${new Date(m.timestamp).toLocaleString()}</span>
+            <span class="metrica-dato">📅 ${fechaFormateada}</span>
           </div>
         </div>
-      `).join('');
+      `}).join('');
     }
 
     function actualizarControlesPaginacion() {
@@ -262,6 +405,7 @@
       `;
     }
 
+    // Iniciar carga
     cargarMetricas();
   </script>
 </body>
