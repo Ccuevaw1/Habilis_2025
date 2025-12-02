@@ -150,7 +150,7 @@
   <header class="encabezado">
     <div class="barra-navegacion">
       <img src="images/logo.png" alt="Logo Habilits" class="logo">
-      <h2>Monitoreo de Recursos del Sistema</h2>
+
       <a href="index.html" class="btn-exportar">Volver al Dashboard</a>
     </div>
   </header>
@@ -158,14 +158,20 @@
   <div class="metricas-container">
     <h1>Monitoreo de Recursos del Sistema</h1>
     
-    <!-- Métricas del CSV Procesado (nuevo bloque) -->
+    <!-- Métricas del CSV Procesado -->
     <div class="csv-procesado-box" id="stats-csv"></div>
     
-    <!-- Estadísticas Generales (siempre visible) -->
+    <!-- Estadísticas Generales -->
     <div class="estadisticas-generales" id="stats-generales"></div>
     
-    <!-- Consumo Energético (siempre visible) -->
+    <!-- Consumo Energético -->
     <div class="energia-box" id="stats-energia"></div>
+    
+    <!-- NUEVO: Feedback de Usuarios -->
+    <div class="estadisticas-generales" id="stats-feedback" style="
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      margin-bottom: 30px;
+    "></div>
     
     <h2 style="margin-top: 40px; color: #2c3e50;">📊 Consumo por Consulta</h2>
     
@@ -188,7 +194,7 @@
 
     async function cargarMetricas() {
       try {
-        // Cargar métricas del CSV procesado PRIMERO
+        // Cargar métricas del CSV procesado
         await cargarMetricasCSV();
         
         const response = await fetch(`${CONFIG.API_URL}/obtener-metricas/`);
@@ -198,8 +204,10 @@
         mostrarEstadisticas(data.estadisticas);
         mostrarPagina(paginaActual);
         actualizarControlesPaginacion();
+        
+        // NUEVO: Cargar feedback de usuarios
+        await cargarFeedbackUsuarios();
       } catch (error) {
-        console.error('Error cargando métricas generales:', error);
         document.getElementById('metricas-list').innerHTML = 
           '<p class="error">Error cargando métricas</p>';
       }
@@ -403,6 +411,70 @@
           💡 <strong>Equivalencia:</strong> Cada consulta consume lo mismo que encender un LED de 10W por ${minutos_led} minutos
         </div>
       `;
+    }
+
+    // NUEVA FUNCIÓN: Cargar y mostrar feedback
+    async function cargarFeedbackUsuarios() {
+      try {
+        const response = await fetch(`${CONFIG.API_URL}/analisis-feedback`);
+        const data = await response.json();
+        
+        if (data.total_respuestas === 0) {
+          document.getElementById('stats-feedback').innerHTML = `
+            <h2>💬 Feedback de Usuarios sobre Rendimiento</h2>
+            <p style="opacity: 0.7; font-style: italic;">
+              Aún no hay feedback de usuarios. 
+              <a href="index.html" style="color: white; text-decoration: underline;">
+                Ir al sistema para enviar feedback
+              </a>
+            </p>
+          `;
+          return;
+        }
+        
+        const totalRespuestas = data.total_respuestas;
+        const rapido = data.satisfaccion.rapido;
+        const normal = data.satisfaccion.normal;
+        const lento = data.satisfaccion.lento;
+        
+        // Calcular satisfacción general
+        const satisfaccionGeneral = rapido.porcentaje > 70 ? '🟢 Excelente' :
+                                    rapido.porcentaje > 50 ? '🟡 Bueno' :
+                                    '🔴 Necesita mejoras';
+        
+        document.getElementById('stats-feedback').innerHTML = `
+          <h2>💬 Feedback de Usuarios sobre Rendimiento</h2>
+          <div>
+            <div class="stat-box">
+              <div class="stat-value">${totalRespuestas}</div>
+              <div class="stat-label">Respuestas Totales</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-value">${rapido.porcentaje}%</div>
+              <div class="stat-label">⚡ Muy Rápido (${rapido.cantidad})</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-value">${normal.porcentaje}%</div>
+              <div class="stat-label">👍 Normal (${normal.cantidad})</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-value">${lento.porcentaje}%</div>
+              <div class="stat-label">🐌 Lento (${lento.cantidad})</div>
+            </div>
+          </div>
+          <div class="equivalencia" style="margin-top: 20px;">
+            <strong>Satisfacción General:</strong> ${satisfaccionGeneral}
+            ${rapido.porcentaje > 70 ? '| Los usuarios reportan un rendimiento excelente ✅' : ''}
+            ${lento.porcentaje > 20 ? '| ⚠️ Revisar causas de lentitud reportadas' : ''}
+          </div>
+        `;
+      } catch (error) {
+        console.error('Error cargando feedback:', error);
+        document.getElementById('stats-feedback').innerHTML = `
+          <h2>💬 Feedback de Usuarios</h2>
+          <p style="opacity: 0.7;">Error al cargar feedback de usuarios</p>
+        `;
+      }
     }
 
     // Iniciar carga

@@ -497,3 +497,56 @@ def obtener_metricas_csv():
             "mensaje": f"Error al leer métricas: {str(e)}",
             "existe": False
         }
+
+@app.post("/feedback")
+def registrar_feedback(feedback: dict):
+    """Recibe feedback de usuarios sobre rendimiento y sostenibilidad"""
+    try:
+        os.makedirs("data", exist_ok=True)
+        
+        with open("data/feedback_usuarios.json", "a", encoding="utf-8") as f:
+            json.dump({
+                "timestamp": feedback.get("timestamp", datetime.now().isoformat()),
+                "tipo": feedback["tipo"],  # "rapido", "normal", "lento"
+                "carrera": feedback.get("carrera", "Sin especificar"),
+                "comentario": feedback.get("comentario", "")
+            }, f, ensure_ascii=False)
+            f.write("\n")
+        
+        return {"mensaje": "Gracias por tu feedback, nos ayuda a mejorar"}
+    except Exception as e:
+        print(f"Error guardando feedback: {e}")
+        return {"mensaje": "Error al guardar feedback", "error": str(e)}
+
+@app.get("/analisis-feedback")
+def analizar_feedback():
+    """Analiza el feedback recibido de usuarios"""
+    try:
+        with open("data/feedback_usuarios.json", "r", encoding="utf-8") as f:
+            lineas = f.readlines()
+        
+        feedbacks = [json.loads(l) for l in lineas]
+        
+        total = len(feedbacks)
+        rapido = sum(1 for f in feedbacks if f["tipo"] == "rapido")
+        normal = sum(1 for f in feedbacks if f["tipo"] == "normal")
+        lento = sum(1 for f in feedbacks if f["tipo"] == "lento")
+        
+        return {
+            "total_respuestas": total,
+            "satisfaccion": {
+                "rapido": {"cantidad": rapido, "porcentaje": round((rapido/total)*100, 1) if total > 0 else 0},
+                "normal": {"cantidad": normal, "porcentaje": round((normal/total)*100, 1) if total > 0 else 0},
+                "lento": {"cantidad": lento, "porcentaje": round((lento/total)*100, 1) if total > 0 else 0}
+            },
+            "por_carrera": {}  # Puedes agregar análisis por carrera
+        }
+    except FileNotFoundError:
+        return {
+            "total_respuestas": 0,
+            "satisfaccion": {
+                "rapido": {"cantidad": 0, "porcentaje": 0},
+                "normal": {"cantidad": 0, "porcentaje": 0},
+                "lento": {"cantidad": 0, "porcentaje": 0}
+            }
+        }
